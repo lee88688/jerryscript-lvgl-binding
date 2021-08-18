@@ -1,5 +1,12 @@
 #include <string.h>
 #include "quickjs.h"
+#include "lvgl.h"
+
+static JSValue addNewButton(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    lv_obj_t *btn = lv_btn_create(lv_scr_act());
+    lv_obj_set_height(btn, LV_SIZE_CONTENT);
+    return JS_NULL;
+}
 
 static JSRuntime* runtime = NULL;
 static JSContext* ctx = NULL;
@@ -8,6 +15,8 @@ const char* eval(const char* str) {
 	if (!runtime) {
         runtime = JS_NewRuntime();
         ctx = JS_NewContext(runtime);
+        JSValue global = JS_GetGlobalObject(ctx);
+        JS_SetPropertyStr(ctx, global, "addButton", JS_NewCFunction(ctx, addNewButton, "addButton", 0));
     }
 	JSValue result =
 	    JS_Eval(ctx, str, strlen(str), "<evalScript>", JS_EVAL_TYPE_GLOBAL);
@@ -17,5 +26,7 @@ const char* eval(const char* str) {
 	}
 	JSValue json = JS_JSONStringify(ctx, result, JS_UNDEFINED, JS_UNDEFINED);
 	JS_FreeValue(ctx, result);
-	return JS_ToCString(ctx, json);
+	const char* ret = JS_ToCString(ctx, json);
+    JS_FreeValue(ctx, json);
+    return ret;
 }
