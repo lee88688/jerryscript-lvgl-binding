@@ -41,12 +41,15 @@ target_include_directories(index PUBLIC
     "${PROJECT_SOURCE_DIR}/quickjs"
 )
 
-target_link_libraries(index PUBLIC lvgl lv_drivers lv_examples)
+target_link_libraries(index PUBLIC lvgl lv_drivers lv_examples quickjs)
 
 if(NOT LVGL_CHOSEN_DEMO)
     set(LVGL_CHOSEN_DEMO lv_demo_widgets)
 endif()
 set_source_files_properties(main.c PROPERTIES COMPILE_FLAGS -DCHOSEN_DEMO=${LVGL_CHOSEN_DEMO})
+set_property(TARGET index PROPERTY COMPILE_FLAGS "${COMPILE_FLAGS} -s EXPORTED_FUNCTIONS='[\"_eval\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\"]'")
 
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
-set_target_properties(index PROPERTIES LINK_FLAGS "--shell-file ${PROJECT_SOURCE_DIR}/lvgl_shell.html -s SINGLE_FILE=1")
+set_target_properties(index PROPERTIES LINK_FLAGS "--shell-file ${PROJECT_SOURCE_DIR}/lvgl_shell.html -s SINGLE_FILE=1 -s EXPORTED_FUNCTIONS=_eval,_main -s EXPORTED_RUNTIME_METHODS=cwrap,ccall")
+# get_target_property(FLAG index LINK_FLAGS)
+# message(STATUS "${FLAG}")
