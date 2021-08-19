@@ -1,6 +1,7 @@
 #include <string.h>
 #include "quickjs.h"
 #include "lvgl.h"
+#include "lvgl-obj.h"
 
 static JSValue addNewButton(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
     lv_obj_t *btn = lv_btn_create(lv_scr_act());
@@ -16,7 +17,8 @@ const char* eval(const char* str) {
         runtime = JS_NewRuntime();
         ctx = JS_NewContext(runtime);
         JSValue global = JS_GetGlobalObject(ctx);
-        JS_SetPropertyStr(ctx, global, "addButton", JS_NewCFunction(ctx, addNewButton, "addButton", 0));
+        js_lvgl_obj_init(ctx);
+        JS_FreeValue(ctx, global);
     }
 	JSValue result =
 	    JS_Eval(ctx, str, strlen(str), "<evalScript>", JS_EVAL_TYPE_GLOBAL);

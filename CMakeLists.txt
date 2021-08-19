@@ -22,6 +22,14 @@ set_property(TARGET quickjs PROPERTY COMPILE_FLAGS -DCONFIG_VERSION=${QUICKJS_VE
 # get_target_property(FLAG quickjs COMPILE_FLAGS)
 # message(STATUS "${FLAG}")
 
+# quickjs lvgl binding
+file(GLOB_RECURSE BI_SOURCES quickjs-lvgl-binding/*.c)
+add_library(quickjs_lvgl_binding STATIC ${BI_SOURCES})
+target_include_directories(quickjs_lvgl_binding PUBLIC
+    "${PROJECT_SOURCE_DIR}/quickjs"
+    "${PROJECT_SOURCE_DIR}/lvgl"
+)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -s USE_SDL=2")
 
 include_directories(${PROJECT_SOURCE_DIR})
@@ -39,9 +47,10 @@ target_include_directories(index PUBLIC
     "${PROJECT_SOURCE_DIR}/lvgl" 
     "${PROJECT_SOURCE_DIR}/lvgl_drivers"
     "${PROJECT_SOURCE_DIR}/quickjs"
+    "${PROJECT_SOURCE_DIR}/quickjs-lvgl-binding"
 )
 
-target_link_libraries(index PUBLIC lvgl lv_drivers lv_examples quickjs)
+target_link_libraries(index PUBLIC lvgl lv_drivers lv_examples quickjs quickjs_lvgl_binding)
 
 if(NOT LVGL_CHOSEN_DEMO)
     set(LVGL_CHOSEN_DEMO lv_demo_widgets)
