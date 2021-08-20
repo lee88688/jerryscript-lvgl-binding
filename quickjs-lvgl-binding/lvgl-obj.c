@@ -1,6 +1,7 @@
 #include "lvgl.h"
 #include "quickjs.h"
 #include "cutils.h"
+#include "quickjs-lvgl-binding.h"
 
 static JSClassID js_lvgl_obj_class_id;
 
@@ -26,16 +27,8 @@ static JSValue js_lvgl_obj_set_height(JSContext *ctx, JSValueConst this_val, int
     return JS_UNDEFINED;
 }
 
-JSValue js_lvgl_obj_constructor(JSContext *ctx, JSValueConst func_obj, JSValueConst this_val, int argc, JSValueConst *argv, int flags) {
-    printf("flags: %d\n", flags);
-    if ((flags & JS_CALL_FLAG_CONSTRUCTOR) == 0) return JS_NULL;
-    lv_obj_t *obj = lv_obj_create(lv_scr_act());
-    JS_SetOpaque(this_val, obj);
-    printf("create obj: %d\n", obj);
-    return this_val;
-}
-
 void js_lvgl_obj_finalizer(JSRuntime *rt, JSValue val) {
+    printf("finalizer");
     lv_obj_t *obj = JS_GetOpaque(val, js_lvgl_obj_class_id);
     lv_obj_del(obj);
 }
@@ -43,7 +36,7 @@ void js_lvgl_obj_finalizer(JSRuntime *rt, JSValue val) {
 static JSClassDef js_lvgl_obj_class = {
     "LvglObj",
     .finalizer = js_lvgl_obj_finalizer,
-    .call = js_lvgl_obj_constructor,
+    // .call = js_lvgl_obj_constructor,
 };
 
 static const JSCFunctionListEntry js_lvgl_obj_proto_funcs[] = {
@@ -52,7 +45,8 @@ static const JSCFunctionListEntry js_lvgl_obj_proto_funcs[] = {
 };
 
 static JSValue create_lvgl_obj(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-    return JS_NewObjectClass(ctx, js_lvgl_obj_class_id);
+    CREATE_COMMON_LVGL_OBJ("obj", lv_obj_create, lv_scr_act(), ctx, js_lvgl_obj_class_id, js_val);
+    return js_val;
 }
 
 int js_lvgl_obj_init(JSContext *ctx) {
@@ -63,13 +57,7 @@ int js_lvgl_obj_init(JSContext *ctx) {
     JS_SetClassProto(ctx, js_lvgl_obj_class_id, proto);
 
     JSValue global = JS_GetGlobalObject(ctx);
-    JSValue Obj = JS_NewObjectClass(ctx, js_lvgl_obj_class_id);
-    JS_SetConstructorBit(ctx, Obj, TRUE);
     JS_SetPropertyStr(ctx, global, "createLvglObj", JS_NewCFunction(ctx, create_lvgl_obj, "", 0));
-    // JS_SetPropertyStr(ctx, global, "Obj", Obj);
-    JS_FreeValue(ctx, Obj);
-    JS_FreeValue(ctx, Obj);
-    // printf("before string count: %d\n", **cnt);
     JS_FreeValue(ctx, global);
 
     return 0;
