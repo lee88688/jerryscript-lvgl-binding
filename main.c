@@ -91,8 +91,8 @@ int main(int argc, char ** argv)
     if(ex != NULL && ex->fn != NULL) {
         ex->fn();
     } else {
-        extern void CHOSEN_DEMO(void);
-        CHOSEN_DEMO();
+        // extern void CHOSEN_DEMO(void);
+        // CHOSEN_DEMO();
     }
 
     emscripten_set_main_loop_arg(do_loop, NULL, -1, true);
