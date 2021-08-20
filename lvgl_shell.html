@@ -14,7 +14,7 @@
 			body {
 			  display: flex;
 			  flex-direction: column;
-			  align-items: center;
+			  align-items: flex-end;
 			  justify-content: center;
 			}
 
@@ -31,10 +31,18 @@
 				margin: 0;
 				padding: 0;
 			}
+			#iframe {
+				width: 30vw;
+				height: 50vh;
+				position: fixed;
+				left: 0;
+				top: 0;
+			}
 		</style>
 	</head>
 	<body>
 		<div id="git-hash"></div>
+		<iframe id="iframe"></iframe>
 		<p id="output">
 			<canvas id="canvas"></canvas>
 		</p>
@@ -80,6 +88,42 @@
 			}
                         window.addEventListener("click", () => window.focus());
 		</script>
+		<script>
+			let iframe = document.getElementById('iframe');
+			iframe.srcdoc = `
+			<style>
+				#wrap {
+					position: fixed;
+					width: 100vw;
+					left: 0;
+					top: 0;
+				}
+				#code {
+					display: block;
+					width: 100%;
+				}
+			</style>
+			<div id="wrap">
+				<textarea id="code" rows="10"></textarea>
+				<div>
+					<button id="run">run code</button>
+				</div>
+				<div id="output"></div>
+			</div>
+			<script>
+				window.onload = () => {
+					let run = document.getElementById('run');
+					let code = document.getElementById('code');
+					let output = document.getElementById('output');
+					run.addEventListener('click', () => {
+						let res = window.top.Module.ccall('eval', 'string', ['string'], [code.value]);
+						output.innerText = res;
+					})
+				}
+			<\/script>
+			`
+		</script>
+		
 		{{{ SCRIPT }}}
 	</body>
 </html>
