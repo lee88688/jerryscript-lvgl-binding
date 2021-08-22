@@ -1,0 +1,15 @@
+{
+  "name": "script",
+  "version": "1.0.0",
+  "description": "",
+  "main": "style_func_gen.js",
+  "scripts": {
+    "gen-style-func": "node style_func_gen.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}
