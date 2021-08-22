@@ -2,18 +2,9 @@
 #include "quickjs.h"
 #include "cutils.h"
 #include "lvgl-obj.h"
+#include "quickjs-lvgl-binding.h"
 
 static JSClassID js_lvgl_btn_class_id;
-
-JSValue js_lvgl_btn_constructor(JSContext *ctx, JSValueConst func_obj, JSValueConst this_val, int argc, JSValueConst *argv, int flags) {
-    if ((flags & JS_CALL_FLAG_CONSTRUCTOR) == 0) return JS_NULL;
-    lv_obj_t *obj = lv_btn_create(lv_scr_act());
-    lv_obj_set_height(obj, LV_SIZE_CONTENT);
-    printf("create btn\n");
-
-    JS_SetOpaque(this_val, obj);
-    return this_val;
-}
 
 void js_lvgl_btn_finalizer(JSRuntime *rt, JSValue val) {
     printf("delete btn\n");
@@ -24,15 +15,15 @@ void js_lvgl_btn_finalizer(JSRuntime *rt, JSValue val) {
 static JSClassDef js_lvgl_btn_class = {
     "LvglBtn",
     .finalizer = js_lvgl_btn_finalizer,
-    .call = js_lvgl_btn_constructor,
+    // .call = js_lvgl_btn_constructor,
 };
 
 static const JSCFunctionListEntry js_lvgl_btn_proto_funcs[] = {
 };
 
 JSValue create_lvgl_btn(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-    printf("create btn\n");
-    return JS_NewObjectClass(ctx, js_lvgl_btn_class_id);
+    CREATE_COMMON_LVGL_OBJ("obj", lv_btn_create, lv_scr_act(), ctx, js_lvgl_btn_class_id, js_val);
+    return js_val;
 }
 
 int js_lvgl_btn_init(JSContext *ctx) {

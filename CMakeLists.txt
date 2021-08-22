@@ -32,7 +32,11 @@ target_include_directories(quickjs_lvgl_binding PUBLIC
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -s USE_SDL=2")
 
-include_directories(${PROJECT_SOURCE_DIR})
+include_directories(
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/lvgl
+    ${PROJECT_SOURCE_DIR}/quickjs
+)
 
 # file(GLOB_RECURSE INCLUDES "./*.h")
 # file(GLOB_RECURSE LIB_SOURCES "lvgl/*.c" "lv_examples/*.c" "lv_drivers/*.c")
