@@ -21,6 +21,16 @@ static JSValue addButton(JSContext *ctx, JSValueConst this_val, int argc, JSValu
     return JS_UNDEFINED;
 }
 
+static JSValue log(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (argc == 0) return JS_UNDEFINED;
+    const char *str = JS_ToCString(ctx, *argv);
+    if (str == NULL) return JS_UNDEFINED;
+    printf("%s\n", str);
+    JS_FreeCString(ctx, str);
+
+    return JS_UNDEFINED;
+}
+
 static JSRuntime* runtime = NULL;
 static JSContext* ctx = NULL;
 
@@ -31,6 +41,7 @@ const char* eval(const char* str) {
         JSValue global = JS_GetGlobalObject(ctx);
         JS_SetPropertyStr(ctx, global, "checkCount", JS_NewCFunction(ctx, checkCount, "checkCount", 1));
         JS_SetPropertyStr(ctx, global, "addButton", JS_NewCFunction(ctx, addButton, "addButton", 1));
+        JS_SetPropertyStr(ctx, global, "log", JS_NewCFunction(ctx, log, "", 1));
         js_lvgl_obj_init(ctx);
         js_lvgl_btn_init(ctx);
         JS_FreeValue(ctx, global);
