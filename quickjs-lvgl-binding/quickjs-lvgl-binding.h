@@ -56,4 +56,6 @@
         return JS_UNDEFINED; \
     }
 
+JSValue print_mem_info(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv);
+
 #endif /* QUICKJS_LVGL_BINGDING */

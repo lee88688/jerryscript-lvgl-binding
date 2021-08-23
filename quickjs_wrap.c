@@ -39,7 +39,7 @@ const char* eval(const char* str) {
         runtime = JS_NewRuntime();
         ctx = JS_NewContext(runtime);
         JSValue global = JS_GetGlobalObject(ctx);
-        JS_SetPropertyStr(ctx, global, "checkCount", JS_NewCFunction(ctx, checkCount, "checkCount", 1));
+        JS_SetPropertyStr(ctx, global, "print_mem_info", JS_NewCFunction(ctx, print_mem_info, "", 0));
         JS_SetPropertyStr(ctx, global, "addButton", JS_NewCFunction(ctx, addButton, "addButton", 1));
         JS_SetPropertyStr(ctx, global, "log", JS_NewCFunction(ctx, log, "", 1));
         js_lvgl_obj_init(ctx);
