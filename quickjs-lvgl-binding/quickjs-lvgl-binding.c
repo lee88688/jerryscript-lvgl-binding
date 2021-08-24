@@ -21,4 +21,5 @@ JSValue print_mem_info(JSContext *ctx, JSValueConst this_val, int argc, JSValueC
     printf("binary obj count: %lld, binary obj size: %lld.\n", mem_usage->binary_object_count, mem_usage->binary_object_size);
 
     js_free(ctx, mem_usage);
+    return JS_UNDEFINED;
 }
