@@ -3,6 +3,35 @@
 
 #include "lvgl-obj.h"
 #include "lvgl-btn.h"
+#include "lvgl.h"
+
+
+#define BI_LOG_LEVEL LV_LOG_LEVEL_TRACE
+
+#if BI_LOG_LEVEL <= LV_LOG_LEVEL_TRACE
+#define BI_LOG_TRACE(...) _lv_log_add(LV_LOG_LEVEL_TRACE, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#else
+#define BI_LOG_TRACE(...)
+#endif
+
+#if BI_LOG_LEVEL <= LV_LOG_LEVEL_INFO
+#define BI_LOG_INFO(...) _lv_log_add(LV_LOG_LEVEL_INFO, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#else
+#define BI_LOG_INFO(...)
+#endif
+
+#if BI_LOG_LEVEL <= LV_LOG_LEVEL_WARN
+#define BI_LOG_WARN(...) _lv_log_add(LV_LOG_LEVEL_WARN, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#else
+#define BI_LOG_WARN(...)
+#endif
+
+#if BI_LOG_LEVEL <= LV_LOG_LEVEL_ERROR
+#define BI_LOG_ERROR(...) _lv_log_add(LV_LOG_LEVEL_ERROR, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#else
+#define BI_LOG_ERROR(...)
+#endif
+
 
 #define CREATE_COMMON_LVGL_OBJ(name, create_func, parent, ctx, class_id, ret_val) \
     lv_obj_t *obj = create_func(parent); \
@@ -14,7 +43,7 @@
         return ret_val; \
     } \
     JS_SetOpaque(ret_val, obj); \
-    printf("create %s\n", name);
+    BI_LOG_TRACE("create %s\n", name);
 
 
 /**
@@ -31,7 +60,7 @@
 
 #define STYLE_FUNC(opt_name, js_tag_type, type_align) \
     static JSValue js_lvgl_obj_set_##opt_name(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) { \
-        printf("set %s\n", #opt_name); \
+        BI_LOG_TRACE("set %s\n", #opt_name); \
         if (argc == 0) return JS_UNDEFINED; \
         lv_style_selector_t selector = 0; \
         if (argc == 2 && JS_VALUE_GET_TAG(argv[1]) != JS_TAG_INT) { \
@@ -42,7 +71,7 @@
         JSValue js_class_id = JS_GetPropertyStr(ctx, proto, "_class_id"); \
         JS_FreeValue(ctx, proto); \
         if (JS_IsUndefined(js_class_id)) { \
-            printf("get _class_id with undefined!\n"); \
+            BI_LOG_WARN("get _class_id with undefined!\n"); \
             return JS_UNDEFINED; \
         } \
         lv_obj_t *obj = JS_GetOpaque(this_val, (JSClassID) JS_VALUE_GET_INT(js_class_id)); \
@@ -52,7 +81,7 @@
         } \
         STYLE_TYPE_DEF_##type_align(js_tag_type, *argv) \
         lv_obj_set_style_##opt_name(obj, value, selector); \
-        printf("set style: %s\n", #opt_name); \
+        BI_LOG_TRACE("set style complete: %s\n", #opt_name); \
         return JS_UNDEFINED; \
     }
 
