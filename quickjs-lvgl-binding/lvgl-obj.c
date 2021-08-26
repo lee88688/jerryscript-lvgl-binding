@@ -18,6 +18,32 @@ static JSClassDef js_lvgl_obj_class = {
     // .call = js_lvgl_obj_constructor,
 };
 
+static JSValue js_lvgl_obj_append_child(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (argc == 0) return JS_UNDEFINED;
+    lv_obj_t *parent = js_lvgl_get_obj_opaque(ctx, this_val);
+    lv_obj_t *child = js_lvgl_get_obj_opaque(ctx, *argv);
+    lv_obj_set_parent(child, parent);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_lvgl_obj_remove_child(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (argc == 0) return JS_UNDEFINED;
+    
+    lv_obj_t *child = js_lvgl_get_obj_opaque(ctx, *argv);
+    if (child != NULL) {
+        // this may have a memory leak
+        lv_obj_del(child);
+    }
+    BI_LOG_INFO("can not get lvgl obj from child!");
+
+    return JS_UNDEFINED;
+}
+
+static const JSCFunctionListEntry js_lvgl_label_proto_funcs2[] = {
+    JS_CFUNC_DEF("appendChild", 1, js_lvgl_obj_append_child),
+    JS_CFUNC_DEF("removeChild", 1, js_lvgl_obj_remove_child),
+};
+
 static JSValue create_lvgl_obj(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
     CREATE_COMMON_LVGL_OBJ("obj", lv_obj_create, lv_scr_act(), ctx, js_lvgl_obj_class_id, js_val);
     return js_val;
@@ -26,8 +52,11 @@ static JSValue create_lvgl_obj(JSContext *ctx, JSValueConst this_val, int argc, 
 int js_lvgl_obj_init(JSContext *ctx) {
     JS_NewClassID(&js_lvgl_obj_class_id);
     JS_NewClass(JS_GetRuntime(ctx), js_lvgl_obj_class_id, &js_lvgl_obj_class);
+
     JSValue proto = JS_NewObject(ctx);
     JS_SetPropertyFunctionList(ctx, proto, js_lvgl_obj_proto_funcs, countof(js_lvgl_obj_proto_funcs));
+    JS_SetPropertyFunctionList(ctx, proto, js_lvgl_label_proto_funcs2, countof(js_lvgl_label_proto_funcs2));
+
     JS_SetPropertyStr(ctx, proto, "_class_id", JS_MKVAL(JS_TAG_INT, js_lvgl_obj_class_id)); // this is used for get opaque value from subclass
     JS_SetClassProto(ctx, js_lvgl_obj_class_id, proto);
 

@@ -3,6 +3,7 @@
 
 #include "lvgl-obj.h"
 #include "lvgl-btn.h"
+#include "lvgl-label.h"
 #include "lvgl.h"
 
 
@@ -84,6 +85,9 @@
         BI_LOG_TRACE("set style complete: %s\n", #opt_name); \
         return JS_UNDEFINED; \
     }
+
+JSValue js_lvgl_get_class_id(JSContext *ctx, JSValue value);
+lv_obj_t *js_lvgl_get_obj_opaque(JSContext *ctx, JSValue value);
 
 void quickjs_lvgl_binding_init(JSContext *ctx);
 

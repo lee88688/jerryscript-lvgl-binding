@@ -17,7 +17,22 @@ static JSClassDef js_lvgl_label_class = {
     .finalizer = js_lvgl_label_finalizer,
 };
 
+JSValue js_lvgl_label_set_text(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (argc == 0) return JS_UNDEFINED;
+    JSValue js_class_id = js_lvgl_get_class_id(ctx, this_val);
+    if (JS_IsUndefined(js_class_id)) {
+        return JS_UNDEFINED;
+    }
+    JSClassID id = JS_VALUE_GET_INT(js_class_id);
+    lv_obj_t *obj = JS_GetOpaque(this_val, id);
+    const char *str = JS_ToCString(ctx, *argv);
+    lv_label_set_text(obj, str);
+    JS_FreeCString(ctx, str);
+    return JS_UNDEFINED;
+}
+
 static const JSCFunctionListEntry js_lvgl_label_proto_funcs[] = {
+    JS_CFUNC_DEF("setText", 1, js_lvgl_label_set_text),
 };
 
 JSValue create_lvgl_label(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
