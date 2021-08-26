@@ -85,6 +85,6 @@
         return JS_UNDEFINED; \
     }
 
-JSValue print_mem_info(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv);
+void quickjs_lvgl_binding_init(JSContext *ctx);
 
 #endif /* QUICKJS_LVGL_BINGDING */

@@ -23,3 +23,11 @@ JSValue print_mem_info(JSContext *ctx, JSValueConst this_val, int argc, JSValueC
     js_free(ctx, mem_usage);
     return JS_UNDEFINED;
 }
+
+void quickjs_lvgl_binding_init(JSContext *ctx) {
+    JSValue global = JS_GetGlobalObject(ctx);
+    JS_SetPropertyStr(ctx, global, "print_mem_info", JS_NewCFunction(ctx, print_mem_info, "", 0));
+    js_lvgl_obj_init(ctx);
+    js_lvgl_btn_init(ctx);
+    JS_FreeValue(ctx, global);
+}
