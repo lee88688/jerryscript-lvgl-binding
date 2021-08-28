@@ -14,22 +14,12 @@ static JSValue checkCount(JSContext *ctx, JSValueConst this_val, int argc, JSVal
     return JS_NULL;
 }
 
-static JSValue addButton(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-    lv_obj_t *obj = lv_btn_create(lv_scr_act());
-    lv_obj_set_height(obj, LV_SIZE_CONTENT);
+// static JSValue addButton(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+//     lv_obj_t *obj = lv_btn_create(lv_scr_act());
+//     lv_obj_set_height(obj, LV_SIZE_CONTENT);
 
-    return JS_UNDEFINED;
-}
-
-static JSValue log(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-    if (argc == 0) return JS_UNDEFINED;
-    const char *str = JS_ToCString(ctx, *argv);
-    if (str == NULL) return JS_UNDEFINED;
-    printf("%s\n", str);
-    JS_FreeCString(ctx, str);
-
-    return JS_UNDEFINED;
-}
+//     return JS_UNDEFINED;
+// }
 
 static JSRuntime* runtime = NULL;
 static JSContext* ctx = NULL;
@@ -38,10 +28,6 @@ const char* eval(const char* str) {
 	if (!runtime) {
         runtime = JS_NewRuntime();
         ctx = JS_NewContext(runtime);
-        JSValue global = JS_GetGlobalObject(ctx);
-        JS_SetPropertyStr(ctx, global, "addButton", JS_NewCFunction(ctx, addButton, "addButton", 1));
-        JS_SetPropertyStr(ctx, global, "log", JS_NewCFunction(ctx, log, "", 1));
-        JS_FreeValue(ctx, global);
         quickjs_lvgl_binding_init(ctx);
     }
 	JSValue result =

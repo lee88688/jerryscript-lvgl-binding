@@ -2,6 +2,11 @@
 #include "lvgl.h"
 #include "quickjs-lvgl-binding.h"
 
+int js_lvgl_get_ref(JSValue value) {
+    int *ref_count = JS_VALUE_GET_PTR(value);
+    return *ref_count;
+}
+
 JSValue print_mem_info(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
     JSMemoryUsage *mem_usage = js_malloc(ctx, sizeof(JSMemoryUsage));
     JS_ComputeMemoryUsage(JS_GetRuntime(ctx), mem_usage);
@@ -21,6 +26,18 @@ JSValue print_mem_info(JSContext *ctx, JSValueConst this_val, int argc, JSValueC
     printf("binary obj count: %lld, binary obj size: %lld.\n", mem_usage->binary_object_count, mem_usage->binary_object_size);
 
     js_free(ctx, mem_usage);
+    return JS_UNDEFINED;
+}
+
+JSValue js_lvgl_log(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (argc == 0) return JS_UNDEFINED;
+    int i = 0;
+    for (i = 0; i < argc; i++) {
+        const char* s = JS_ToCString(ctx, argv[i]);
+        printf("%s ", s);
+        JS_FreeCString(ctx, s);
+    }
+    printf("\n");
     return JS_UNDEFINED;
 }
 
@@ -50,7 +67,17 @@ lv_obj_t *js_lvgl_get_obj_opaque(JSContext *ctx, JSValue value) {
 
 void quickjs_lvgl_binding_init(JSContext *ctx) {
     JSValue global = JS_GetGlobalObject(ctx);
-    JS_SetPropertyStr(ctx, global, "print_mem_info", JS_NewCFunction(ctx, print_mem_info, "", 0));
+
+    JS_SetPropertyStr(ctx, global, "print_mem_info", JS_NewCFunction(ctx, print_mem_info, "print_mem_info", 0));
+
+    JSValue console = JS_NewObject(ctx);
+    JSValue log = JS_NewCFunction(ctx, js_lvgl_log, "log", 0);
+    JS_SetPropertyStr(ctx, console, "log", JS_DupValue(ctx, log));
+    JS_SetPropertyStr(ctx, console, "warn", JS_DupValue(ctx, log));
+    JS_FreeValue(ctx, log);
+    // JS_SetPropertyStr(ctx, global, "console", JS_DupValue(ctx, console));
+    JS_SetPropertyStr(ctx, global, "console", console);
+
     js_lvgl_obj_init(ctx);
     js_lvgl_btn_init(ctx);
     js_lvgl_label_init(ctx);
