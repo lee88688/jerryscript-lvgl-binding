@@ -1,11 +1,9 @@
 #include "quickjs.h"
 #include "lvgl.h"
 #include "quickjs-lvgl-binding.h"
-
-int js_lvgl_get_ref(JSValue value) {
-    int *ref_count = JS_VALUE_GET_PTR(value);
-    return *ref_count;
-}
+#include "lvgl-obj.h"
+#include "lvgl-btn.h"
+#include "lvgl-label.h"
 
 JSValue print_mem_info(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
     JSMemoryUsage *mem_usage = js_malloc(ctx, sizeof(JSMemoryUsage));
@@ -29,54 +27,10 @@ JSValue print_mem_info(JSContext *ctx, JSValueConst this_val, int argc, JSValueC
     return JS_UNDEFINED;
 }
 
-JSValue js_lvgl_log(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-    if (argc == 0) return JS_UNDEFINED;
-    int i = 0;
-    for (i = 0; i < argc; i++) {
-        const char* s = JS_ToCString(ctx, argv[i]);
-        printf("%s ", s);
-        JS_FreeCString(ctx, s);
-    }
-    printf("\n");
-    return JS_UNDEFINED;
-}
-
-JSValue js_lvgl_get_class_id(JSContext *ctx, JSValue value) {
-    JSValue js_class_id = JS_GetPropertyStr(ctx, value, "_class_id");
-    if (JS_IsUndefined(js_class_id)) {
-        BI_LOG_WARN("get _class_id with undefined!\n")
-        return JS_UNDEFINED;
-    }
-    if (JS_VALUE_GET_TAG(js_class_id) == JS_TAG_INT) {
-        // js_class_id is a primitive type, it don't need free.
-        return js_class_id;
-    }
-    JS_FreeValue(ctx, js_class_id);
-    return JS_UNDEFINED;
-}
-
-lv_obj_t *js_lvgl_get_obj_opaque(JSContext *ctx, JSValue value) {
-    JSValue class_id = js_lvgl_get_class_id(ctx, value);
-    if (JS_IsUndefined(class_id)) {
-        return NULL;
-    }
-    JSClassID id = JS_VALUE_GET_INT(class_id);
-    lv_obj_t *obj = JS_GetOpaque(value, id);
-    return obj;
-}
-
 void quickjs_lvgl_binding_init(JSContext *ctx) {
     JSValue global = JS_GetGlobalObject(ctx);
 
     JS_SetPropertyStr(ctx, global, "print_mem_info", JS_NewCFunction(ctx, print_mem_info, "print_mem_info", 0));
-
-    JSValue console = JS_NewObject(ctx);
-    JSValue log = JS_NewCFunction(ctx, js_lvgl_log, "log", 0);
-    JS_SetPropertyStr(ctx, console, "log", JS_DupValue(ctx, log));
-    JS_SetPropertyStr(ctx, console, "warn", JS_DupValue(ctx, log));
-    JS_FreeValue(ctx, log);
-    // JS_SetPropertyStr(ctx, global, "console", JS_DupValue(ctx, console));
-    JS_SetPropertyStr(ctx, global, "console", console);
 
     js_lvgl_obj_init(ctx);
     js_lvgl_btn_init(ctx);

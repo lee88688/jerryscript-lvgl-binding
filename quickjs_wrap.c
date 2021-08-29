@@ -28,6 +28,7 @@ const char* eval(const char* str) {
 	if (!runtime) {
         runtime = JS_NewRuntime();
         ctx = JS_NewContext(runtime);
+        js_runtime_init(ctx);
         quickjs_lvgl_binding_init(ctx);
     }
 	JSValue result =

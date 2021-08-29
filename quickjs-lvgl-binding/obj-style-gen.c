@@ -1,6 +1,6 @@
 #include "lvgl.h"
 #include "quickjs.h"
-#include "quickjs-lvgl-binding.h"
+#include "lvgl-common.h"
 
 STYLE_FUNC(width, INT, 0);
 STYLE_FUNC(min_width, INT, 0);

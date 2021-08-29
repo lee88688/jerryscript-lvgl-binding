@@ -2,7 +2,7 @@
 #include "quickjs.h"
 #include "cutils.h"
 #include "lvgl-label.h"
-#include "quickjs-lvgl-binding.h"
+#include "lvgl-common.h"
 
 static JSClassID js_lvgl_label_class_id;
 

@@ -1,7 +1,7 @@
 #include "lvgl.h"
 #include "quickjs.h"
 #include "cutils.h"
-#include "quickjs-lvgl-binding.h"
+#include "lvgl-common.h"
 #include "obj-style-gen.c"
 
 static JSClassID js_lvgl_obj_class_id;
