@@ -22,6 +22,13 @@ set_property(TARGET quickjs PROPERTY COMPILE_FLAGS -DCONFIG_VERSION=${QUICKJS_VE
 # get_target_property(FLAG quickjs COMPILE_FLAGS)
 # message(STATUS "${FLAG}")
 
+# jerryscript build
+set(JERRY_DEBUGGER ON)
+set(JERRY_LINE_INFO ON)
+set(JERRY_CPOINTER_32_BIT ON)
+set(JERRY_SYSTEM_ALLOCATOR ON)
+add_subdirectory(jerryscript)
+
 # quickjs lvgl binding
 file(GLOB_RECURSE BI_SOURCES quickjs-lvgl-binding/*.c)
 add_library(quickjs_lvgl_binding STATIC ${BI_SOURCES})
@@ -54,7 +61,7 @@ target_include_directories(index PUBLIC
     "${PROJECT_SOURCE_DIR}/quickjs-lvgl-binding"
 )
 
-target_link_libraries(index PUBLIC lvgl lv_drivers lv_examples quickjs quickjs_lvgl_binding)
+target_link_libraries(index PUBLIC lvgl lv_drivers lv_examples quickjs quickjs_lvgl_binding, jerryscript)
 
 if(NOT LVGL_CHOSEN_DEMO)
     set(LVGL_CHOSEN_DEMO lv_demo_widgets)
