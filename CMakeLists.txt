@@ -23,11 +23,11 @@ set_property(TARGET quickjs PROPERTY COMPILE_FLAGS -DCONFIG_VERSION=${QUICKJS_VE
 # message(STATUS "${FLAG}")
 
 # jerryscript build
-set(JERRY_DEBUGGER ON)
-set(JERRY_LINE_INFO ON)
-set(JERRY_CPOINTER_32_BIT ON)
-set(JERRY_SYSTEM_ALLOCATOR ON)
-add_subdirectory(jerryscript)
+# set(JERRY_DEBUGGER ON)
+# set(JERRY_LINE_INFO ON)
+# set(JERRY_CPOINTER_32_BIT ON)
+# set(JERRY_SYSTEM_ALLOCATOR ON)
+# add_subdirectory(jerryscript)
 
 # quickjs lvgl binding
 file(GLOB_RECURSE BI_SOURCES quickjs-lvgl-binding/*.c)
@@ -35,6 +35,27 @@ add_library(quickjs_lvgl_binding STATIC ${BI_SOURCES})
 target_include_directories(quickjs_lvgl_binding PUBLIC
     "${PROJECT_SOURCE_DIR}/quickjs"
     "${PROJECT_SOURCE_DIR}/lvgl"
+)
+
+# jerry lvgl binding
+file(GLOB JE_SOURCES jerry-lvgl-binding/*.c)
+add_library(jerry_lvgl_biding STATIC ${JE_SOURCES})
+target_include_directories(jerry_lvgl_biding PUBLIC
+    "${PROJECT_SOURCE_DIR}/lvgl"
+    "${PROJECT_SOURCE_DIR}/jerryscript/jerry-core/include"
+    "${PROJECT_SOURCE_DIR}/jerryscript/jerry-ext/include"
+)
+
+# jerry lib
+add_library(jerry_core STATIC IMPORTED)
+# find_library(jerry_lib NAMES jerry-core PATHS "${PROJECT_SOURCE_DIR}/jerry")
+# message(STATUS "${jerry_lib}")
+set_target_properties(jerry_core PROPERTIES
+  IMPORTED_LOCATION "${PROJECT_SOURCE_DIR}/jerryscript/build/lib/libjerry-core.a"
+)
+add_library(jerry_ext STATIC IMPORTED)
+set_target_properties(jerry_ext PROPERTIES
+  IMPORTED_LOCATION "${PROJECT_SOURCE_DIR}/jerryscript/build/lib/libjerry-ext.a"
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -s USE_SDL=2")
@@ -48,9 +69,12 @@ include_directories(
 # file(GLOB_RECURSE INCLUDES "./*.h")
 # file(GLOB_RECURSE LIB_SOURCES "lvgl/*.c" "lv_examples/*.c" "lv_drivers/*.c")
 file(GLOB MY_SOURCES "./*.c")
+list(FILTER MY_SOURCES EXCLUDE REGEX quickjs)
 # set(SOURCES ${LIB_SOURCES} ${MY_SOURCES})
 
+# add_executable(index ${MY_SOURCES})
 add_executable(index ${MY_SOURCES})
+message(STATUS ${MY_SOURCES})
 
 target_include_directories(index PUBLIC 
     "${PROJECT_BINARY_DIR}" 
@@ -59,9 +83,14 @@ target_include_directories(index PUBLIC
     "${PROJECT_SOURCE_DIR}/lvgl_drivers"
     "${PROJECT_SOURCE_DIR}/quickjs"
     "${PROJECT_SOURCE_DIR}/quickjs-lvgl-binding"
+    "${PROJECT_SOURCE_DIR}/jerryscript/jerry-core/include"
 )
 
-target_link_libraries(index PUBLIC lvgl lv_drivers lv_examples quickjs quickjs_lvgl_binding, jerryscript)
+target_link_libraries(index PUBLIC 
+    lvgl lv_drivers lv_examples 
+    quickjs quickjs_lvgl_binding 
+    jerry_lvgl_biding jerry_core jerry_ext
+)
 
 if(NOT LVGL_CHOSEN_DEMO)
     set(LVGL_CHOSEN_DEMO lv_demo_widgets)
@@ -69,8 +98,8 @@ endif()
 set_source_files_properties(main.c PROPERTIES COMPILE_FLAGS -DCHOSEN_DEMO=${LVGL_CHOSEN_DEMO})
 # set_property(TARGET index PROPERTY COMPILE_FLAGS "${COMPILE_FLAGS} -s EXPORTED_FUNCTIONS='[\"_eval\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\"]'")
 
-# set(CMAKE_EXECUTABLE_SUFFIX ".html")
-set(CMAKE_EXECUTABLE_SUFFIX ".js")
+set(CMAKE_EXECUTABLE_SUFFIX ".html")
+# set(CMAKE_EXECUTABLE_SUFFIX ".js")
 set_target_properties(index PROPERTIES LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 --shell-file ${PROJECT_SOURCE_DIR}/lvgl_shell.html -s SINGLE_FILE=1 -s EXPORTED_FUNCTIONS=_eval,_main -s EXPORTED_RUNTIME_METHODS=cwrap,ccall")
 # get_target_property(FLAG index LINK_FLAGS)
 # message(STATUS "${FLAG}")
