@@ -14,6 +14,7 @@ add_library(lv_examples STATIC ${EX_SOURCES})
 file(GLOB_RECURSE DR_SOURCES lv_drivers/*.c)
 add_library(lv_drivers STATIC ${DR_SOURCES})
 
+if (0)
 # quickjs
 file(GLOB QU_SOURCES quickjs/quickjs-eval.c quickjs/quickjs.c quickjs/cutils.c quickjs/libregexp.c quickjs/libbf.c quickjs/libunicode.c)
 add_library(quickjs STATIC ${QU_SOURCES})
@@ -22,13 +23,6 @@ set_property(TARGET quickjs PROPERTY COMPILE_FLAGS -DCONFIG_VERSION=${QUICKJS_VE
 # get_target_property(FLAG quickjs COMPILE_FLAGS)
 # message(STATUS "${FLAG}")
 
-# jerryscript build
-# set(JERRY_DEBUGGER ON)
-# set(JERRY_LINE_INFO ON)
-# set(JERRY_CPOINTER_32_BIT ON)
-# set(JERRY_SYSTEM_ALLOCATOR ON)
-# add_subdirectory(jerryscript)
-
 # quickjs lvgl binding
 file(GLOB_RECURSE BI_SOURCES quickjs-lvgl-binding/*.c)
 add_library(quickjs_lvgl_binding STATIC ${BI_SOURCES})
@@ -36,6 +30,14 @@ target_include_directories(quickjs_lvgl_binding PUBLIC
     "${PROJECT_SOURCE_DIR}/quickjs"
     "${PROJECT_SOURCE_DIR}/lvgl"
 )
+endif()
+
+# jerryscript build
+# set(JERRY_DEBUGGER ON)
+# set(JERRY_LINE_INFO ON)
+# set(JERRY_CPOINTER_32_BIT ON)
+# set(JERRY_SYSTEM_ALLOCATOR ON)
+# add_subdirectory(jerryscript)
 
 # jerry lvgl binding
 file(GLOB JE_SOURCES jerry-lvgl-binding/*.c)
@@ -81,14 +83,15 @@ target_include_directories(index PUBLIC
     "${PROJECT_SOURCE_DIR}/lvgl_examples" 
     "${PROJECT_SOURCE_DIR}/lvgl" 
     "${PROJECT_SOURCE_DIR}/lvgl_drivers"
-    "${PROJECT_SOURCE_DIR}/quickjs"
-    "${PROJECT_SOURCE_DIR}/quickjs-lvgl-binding"
+    # "${PROJECT_SOURCE_DIR}/quickjs"
+    # "${PROJECT_SOURCE_DIR}/quickjs-lvgl-binding"
+    "${PROJECT_SOURCE_DIR}/jerry-lvgl-binding"
     "${PROJECT_SOURCE_DIR}/jerryscript/jerry-core/include"
 )
 
 target_link_libraries(index PUBLIC 
     lvgl lv_drivers lv_examples 
-    quickjs quickjs_lvgl_binding 
+    # quickjs quickjs_lvgl_binding 
     jerry_lvgl_biding jerry_core jerry_ext
 )
 

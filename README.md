@@ -18,11 +18,11 @@ Download the [Emscripten SDK](https://kripken.github.io/emscripten-site/) and ma
 
 More info here: https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html
 
-## build jerryscript
+## build jerryscript lib using emscripten
 
 ```bash
 # jerryscript root directory
-emcmake cmake -Bbuild -DJERRY_DEBUGGER=ON -DJERRY_LINE_INFO=ON  -DJERRY_CPOINTER_32_BIT=ON -DJERRY_SYSTEM_ALLOCATOR=ON -DENABLE_AMALGAM=ON
+emcmake cmake -Bbuild -DJERRY_DEBUGGER=ON -DJERRY_LINE_INFO=ON  -DJERRY_CPOINTER_32_BIT=ON -DENABLE_AMALGAM=ON -DJERRY_GLOBAL_HEAP_SIZE=10240 -DJERRY_SYSTEM_ALLOCATOR=ON
 emmake make -C build
 ```
 

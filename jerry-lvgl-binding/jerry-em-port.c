@@ -45,7 +45,7 @@ double jerry_port_get_local_time_zone_adjustment(double unix_ms, bool is_utc)
   return ((double) tm.tm_gmtoff) * 1000;
 }
 
-double jerry_port_get_current_time (void)
+double jerry_port_get_current_time()
 {
   struct timeval tv;
 
@@ -65,7 +65,7 @@ void jerry_port_default_set_current_context (jerry_context_t *context_p) /**< po
   current_context_p = context_p;
 }
 
-jerry_context_t *jerry_port_get_current_context (void)
+jerry_context_t *jerry_port_get_current_context ()
 {
   return current_context_p;
 }
