@@ -8,7 +8,7 @@
 
 static const char *NAME = "LvglLabel";
 
-static void lvgl_label_free_cb (void *native_p, jerry_object_native_info_t *info_p) {
+static void lvgl_label_free_cb(void *native_p, jerry_object_native_info_t *info_p) {
     BI_LOG_TRACE("deconstruct label\n");
     lv_obj_t *obj = (lv_obj_t *) native_p;
     lv_obj_del(obj);
@@ -20,15 +20,11 @@ static const jerry_object_native_info_t lvgl_label_native_info = {
 
 static jerry_value_t lvgl_label_constructor(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
     lv_obj_t *obj = lv_label_create(lv_scr_act());
-    BI_LOG_TRACE("%x", obj);
     jerry_set_object_native_pointer(
         info->this_value,
         obj,
         &lvgl_label_native_info
     );
-    void *test = NULL;
-    jerry_get_object_native_pointer(info->this_value, &test, &lvgl_label_native_info);
-    BI_LOG_TRACE("%x", test);
     return jerry_create_undefined();
 }
 
@@ -38,8 +34,7 @@ static jerry_value_t js_lvgl_label_set_text(const jerry_call_info_t *info, const
     if (
         argc != 0 
         && jerry_value_is_string(argv[0])
-        && jerry_get_object_native_pointer(info->this_value, &obj, &lvgl_label_native_info)
-        && obj
+        && js_lvgl_get_native_info(info->this_value, &obj)
     ) {
         char *text = jerry_to_c_string(argv[0]);
         lv_label_set_text(obj, text);
@@ -67,6 +62,8 @@ void js_lvgl_label_init() {
     jerry_value_t proto = jerry_create_object();
     jerry_set_prototype(proto, obj_prototype);
     jerry_set_prop_list(proto, js_label_prototype_methods, countof(js_label_prototype_methods));
+    jerry_value_t native_info = jerry_create_number((uint32_t) &lvgl_label_native_info);
+    jerryx_set_property_str(proto, NATIVE_INFO_PROP_STR, native_info);
     jerryx_set_property_str(constructor, "prototype", proto);
 
     jerryx_set_property_str(global, NAME, constructor);

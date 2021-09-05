@@ -47,6 +47,8 @@ void js_lvgl_<%= h.changeCase.lower(widgetName) %>_init() {
     jerry_value_t proto = jerry_create_object();
     jerry_set_prototype(proto, obj_prototype);
     jerry_set_prop_list(proto, js_<%= h.changeCase.lower(widgetName) %>_prototype_methods, countof(js_<%= h.changeCase.lower(widgetName) %>_prototype_methods));
+    jerry_value_t native_info = jerry_create_number((uint32_t) &lvgl_<%= h.changeCase.lower(widgetName) %>_native_info);
+    jerryx_set_property_str(proto, NATIVE_INFO_PROP_STR, native_info);
     jerryx_set_property_str(constructor, "prototype", proto);
 
     jerryx_set_property_str(global, NAME, constructor);

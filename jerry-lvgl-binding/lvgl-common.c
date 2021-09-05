@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "jerryscript-core.h"
 #include "jerryscript-ext/handler.h"
 #include "lvgl-common.h"
@@ -63,4 +64,16 @@ void jerry_free_c_string(char *str) {
     if (!str) {
         free(str);
     }
+}
+
+bool js_lvgl_get_native_info(jerry_value_t value, void **obj) {
+    jerry_value_t native_value_p = jerryx_get_property_str(value, NATIVE_INFO_PROP_STR);
+    if (jerry_value_is_undefined(native_value_p) && jerry_value_is_error(native_value_p)) {
+        return false;
+    }
+    jerry_object_native_info_t *native_p = (jerry_object_native_info_t *) jerry_value_as_uint32(native_value_p);
+    bool ret = jerry_get_object_native_pointer(value, obj, native_p);
+
+    jerry_release_value(native_value_p);
+    return ret;
 }

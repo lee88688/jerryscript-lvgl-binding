@@ -35,7 +35,7 @@ for (const [_, name, paramsStr] of matchs) {
       alignType = typeAlignMap[key];
     }
   }
-  style_func.push(`STYLE_FUNC(${name}, lvgl_obj_native_info, ${alignType});`);
+  style_func.push(`STYLE_FUNC(${name}, ${alignType});`);
   js_func_def.push(`JERRY_CFUNC_DEF("${camelCase(`set ${name}`)}", js_lvgl_obj_set_${name}),`);
 }
 

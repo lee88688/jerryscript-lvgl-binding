@@ -4,6 +4,7 @@
 #include "lvgl.h"
 #include "jerryscript-core.h"
 
+bool js_lvgl_get_native_info(jerry_value_t value, void **obj);
 
 #define countof(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -72,7 +73,7 @@ typedef struct jerry_function_entry {
     lv_color_t value = LV_COLOR_MAKE(res >> 16 & 0xff, res >> 8 & 0xff, res & 0xff);
 
 
-#define STYLE_FUNC(opt_name, native_info, type_align) \
+#define STYLE_FUNC(opt_name, type_align) \
     jerry_value_t js_lvgl_obj_set_##opt_name(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) { \
         BI_LOG_TRACE("set style: %s", #opt_name); \
         void *obj = NULL; \
@@ -83,8 +84,7 @@ typedef struct jerry_function_entry {
         if ( \
             argc != 0 \
             && jerry_value_is_number(argv[0]) \
-            && jerry_get_object_native_pointer(info->this_value, &obj, & native_info) \
-            && obj \
+            && js_lvgl_get_native_info(info->this_value, &obj) \
         ) { \
             STYLE_TYPE_DEF_##type_align(argv[0]); \
             lv_obj_set_style_##opt_name(obj, value, selector); \
@@ -92,6 +92,8 @@ typedef struct jerry_function_entry {
         } \
         return jerry_create_undefined(); \
     }
+
+#define NATIVE_INFO_PROP_STR "_native_info"
 
 void jerry_set_prop_list(jerry_value_t value, const jerry_function_entry *entries, jerry_size_t len);
 

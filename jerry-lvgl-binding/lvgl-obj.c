@@ -37,6 +37,10 @@ void js_lvgl_obj_init() {
     jerry_value_t constructor = jerry_create_external_function(lvgl_obj_constructor);
     jerry_value_t proto = jerry_create_object();
     jerry_set_prop_list(proto, js_obj_prototype_methods, countof(js_obj_prototype_methods));
+
+    jerry_value_t native_info = jerry_create_number((uint32_t) &lvgl_obj_native_info);
+    jerryx_set_property_str(proto, NATIVE_INFO_PROP_STR, native_info);
+
     jerryx_set_property_str(constructor, "prototype", proto);
 
     jerryx_set_property_str(global, NAME, constructor);
