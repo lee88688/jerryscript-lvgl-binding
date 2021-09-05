@@ -4,30 +4,32 @@
 #include "lvgl.h"
 #include "jerryscript-core.h"
 
+
 #define countof(x) (sizeof(x) / sizeof((x)[0]))
 
+void _bi_log(lv_log_level_t level, const char * file, int line, const char * func, const char * format, ...);
 #define BI_LOG_LEVEL LV_LOG_LEVEL_TRACE
 
 #if BI_LOG_LEVEL <= LV_LOG_LEVEL_TRACE
-#define BI_LOG_TRACE(...) _lv_log_add(LV_LOG_LEVEL_TRACE, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define BI_LOG_TRACE(...) _bi_log(LV_LOG_LEVEL_TRACE, __FILE__, __LINE__, __func__, __VA_ARGS__);
 #else
 #define BI_LOG_TRACE(...)
 #endif
 
 #if BI_LOG_LEVEL <= LV_LOG_LEVEL_INFO
-#define BI_LOG_INFO(...) _lv_log_add(LV_LOG_LEVEL_INFO, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define BI_LOG_INFO(...) _bi_log(LV_LOG_LEVEL_INFO, __FILE__, __LINE__, __func__, __VA_ARGS__);
 #else
 #define BI_LOG_INFO(...)
 #endif
 
 #if BI_LOG_LEVEL <= LV_LOG_LEVEL_WARN
-#define BI_LOG_WARN(...) _lv_log_add(LV_LOG_LEVEL_WARN, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define BI_LOG_WARN(...) _bi_log(LV_LOG_LEVEL_WARN, __FILE__, __LINE__, __func__, __VA_ARGS__);
 #else
 #define BI_LOG_WARN(...)
 #endif
 
 #if BI_LOG_LEVEL <= LV_LOG_LEVEL_ERROR
-#define BI_LOG_ERROR(...) _lv_log_add(LV_LOG_LEVEL_ERROR, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define BI_LOG_ERROR(...) _bi_log(LV_LOG_LEVEL_ERROR, __FILE__, __LINE__, __func__, __VA_ARGS__);
 #else
 #define BI_LOG_ERROR(...)
 #endif
@@ -72,20 +74,28 @@ typedef struct jerry_function_entry {
 
 #define STYLE_FUNC(opt_name, native_info, type_align) \
     jerry_value_t js_lvgl_obj_set_##opt_name(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) { \
-        BI_LOG_TRACE("set %s\n", #opt_name); \
+        BI_LOG_TRACE("set style: %s", #opt_name); \
         void *obj = NULL; \
         lv_style_selector_t selector = 0; \
         if (argc == 2 && jerry_value_is_number(argv[1])) { \
             selector = jerry_value_as_integer(argv[1]); \
         } \
-        if (argc != 0 && jerry_value_is_number(argv[0]) && jerry_get_object_native_pointer(info->this_value, &obj, & native_info)) { \
+        if ( \
+            argc != 0 \
+            && jerry_value_is_number(argv[0]) \
+            && jerry_get_object_native_pointer(info->this_value, &obj, & native_info) \
+            && obj \
+        ) { \
             STYLE_TYPE_DEF_##type_align(argv[0]); \
             lv_obj_set_style_##opt_name(obj, value, selector); \
-            BI_LOG_TRACE("set style complete: %s\n", #opt_name); \
+            BI_LOG_TRACE("set style complete: %s", #opt_name); \
         } \
         return jerry_create_undefined(); \
     }
 
 void jerry_set_prop_list(jerry_value_t value, const jerry_function_entry *entries, jerry_size_t len);
+
+char *jerry_to_c_string(jerry_value_t value);
+void jerry_free_c_string(char *str);
 
 #endif /* LVGL_COMMON_H */

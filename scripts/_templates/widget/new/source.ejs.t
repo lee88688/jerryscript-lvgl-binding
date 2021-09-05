@@ -1,44 +1,59 @@
 ---
-to: ../quickjs-lvgl-binding/<%= 'lvgl-' + h.changeCase.lower(widgetName) %>.c
+to: ../jerry-lvgl-binding/<%= 'lvgl-' + h.changeCase.lower(widgetName) %>.c
 ---
 #include "lvgl.h"
-#include "quickjs.h"
-#include "cutils.h"
+#include "jerryscript-core.h"
+#include "jerryscript-ext/handler.h"
+#include "lvgl-common.h"
+#include "lvgl-obj.h"
 #include "lvgl-<%= h.changeCase.lower(widgetName) %>.h"
-#include "quickjs-lvgl-binding.h"
 
-static JSClassID js_lvgl_<%= h.changeCase.lower(widgetName) %>_class_id;
 
-void js_lvgl_<%= h.changeCase.lower(widgetName) %>_finalizer(JSRuntime *rt, JSValue val) {
-    BI_LOG_TRACE("delete <%= h.changeCase.lower(widgetName) %>\n");
-    lv_obj_t *obj = JS_GetOpaque(val, js_lvgl_<%= h.changeCase.lower(widgetName) %>_class_id);
+static const char *NAME = "Lvgl<%= h.capitalize(widgetName) %>";
+
+static void lvgl_<%= h.changeCase.lower(widgetName) %>_free_cb (void *native_p, jerry_object_native_info_t *info_p) {
+    BI_LOG_TRACE("deconstruct <%= h.changeCase.lower(widgetName) %>\n");
+    lv_obj_t *obj = (lv_obj_t *) native_p;
     lv_obj_del(obj);
 }
 
-static JSClassDef js_lvgl_<%= h.changeCase.lower(widgetName) %>_class = {
-    "Lvgl<%= h.capitalize(widgetName) %>",
-    .finalizer = js_lvgl_<%= h.changeCase.lower(widgetName) %>_finalizer,
+static const jerry_object_native_info_t lvgl_<%= h.changeCase.lower(widgetName) %>_native_info = {
+    .free_cb = lvgl_<%= h.changeCase.lower(widgetName) %>_free_cb,
 };
 
-static const JSCFunctionListEntry js_lvgl_<%= h.changeCase.lower(widgetName) %>_proto_funcs[] = {
-};
-
-JSValue create_lvgl_<%= h.changeCase.lower(widgetName) %>(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-    CREATE_COMMON_LVGL_OBJ("<%= h.changeCase.lower(widgetName) %>", lv_<%= h.changeCase.lower(widgetName) %>_create, lv_scr_act(), ctx, js_lvgl_<%= h.changeCase.lower(widgetName) %>_class_id, js_val);
-    return js_val;
+static jerry_value_t lvgl_<%= h.changeCase.lower(widgetName) %>_constructor(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
+    lv_obj_t *obj = lv_<%= h.changeCase.lower(widgetName) %>_create(lv_scr_act());
+    jerry_set_object_native_pointer(
+        info->this_value,
+        obj,
+        &lvgl_<%= h.changeCase.lower(widgetName) %>_native_info
+    );
+    return jerry_create_undefined();
 }
 
-int js_lvgl_<%= h.changeCase.lower(widgetName) %>_init(JSContext *ctx) {
-    JS_NewClassID(&js_lvgl_<%= h.changeCase.lower(widgetName) %>_class_id);
-    JS_NewClass(JS_GetRuntime(ctx), js_lvgl_<%= h.changeCase.lower(widgetName) %>_class_id, &js_lvgl_<%= h.changeCase.lower(widgetName) %>_class);
-    JSValue proto = JS_NewObjectClass(ctx, get_obj_class_id());
-    JS_SetPropertyFunctionList(ctx, proto, js_lvgl_<%= h.changeCase.lower(widgetName) %>_proto_funcs, countof(js_lvgl_<%= h.changeCase.lower(widgetName) %>_proto_funcs));
-    JS_SetPropertyStr(ctx, proto, "_class_id", JS_MKVAL(JS_TAG_INT, js_lvgl_<%= h.changeCase.lower(widgetName) %>_class_id));
-    JS_SetClassProto(ctx, js_lvgl_<%= h.changeCase.lower(widgetName) %>_class_id, proto);
+static const jerry_function_entry js_<%= h.changeCase.lower(widgetName) %>_prototype_methods[] = {
+};
 
-    JSValue global = JS_GetGlobalObject(ctx);
-    JS_SetPropertyStr(ctx, global, "createLvgl<%= h.capitalize(widgetName) %>", JS_NewCFunction(ctx, create_lvgl_<%= h.changeCase.lower(widgetName) %>, "", 0));
-    JS_FreeValue(ctx, global);
+void js_lvgl_<%= h.changeCase.lower(widgetName) %>_init() {
+    jerry_value_t global = jerry_get_global_object();
 
-    return 0;
+    jerry_value_t LvglObj = jerryx_get_property_str(global, get_lvgl_obj_constructor_name());
+    if (jerry_value_is_undefined(LvglObj)) {
+        return;
+    }
+    jerry_value_t obj_prototype = jerryx_get_property_str(LvglObj, "prototype");
+
+    jerry_value_t constructor = jerry_create_external_function(lvgl_<%= h.changeCase.lower(widgetName) %>_constructor);
+    jerry_value_t proto = jerry_create_object();
+    jerry_set_prototype(proto, obj_prototype);
+    jerry_set_prop_list(proto, js_<%= h.changeCase.lower(widgetName) %>_prototype_methods, countof(js_<%= h.changeCase.lower(widgetName) %>_prototype_methods));
+    jerryx_set_property_str(constructor, "prototype", proto);
+
+    jerryx_set_property_str(global, NAME, constructor);
+
+    jerry_release_value(global);
+    jerry_release_value(LvglObj);
+    jerry_release_value(obj_prototype);
+    jerry_release_value(constructor);
+    jerry_release_value(proto);
 }

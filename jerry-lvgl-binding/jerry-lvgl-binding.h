@@ -3,5 +3,6 @@
 
 #include "lvgl-common.h"
 #include "lvgl-obj.h"
+#include "lvgl-label.h"
 
 #endif /* JERRY_LVGL_BINDING_H */

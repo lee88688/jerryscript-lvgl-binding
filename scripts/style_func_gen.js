@@ -4,7 +4,7 @@ const {camelCase} = require('lodash');
 
 const reg = /lv_obj_set_style_(.*?)\((.*?)\);/g;
 const content = fs.readFileSync('../lvgl/src/core/lv_obj_style_gen.h', 'utf8');
-const outputFileName = path.join('../jerry-lvgl-binding', 'obj-style-gen.c');
+const outputFileName = path.join('../jerry-lvgl-binding', 'obj-style-gen.h');
 
 const typeAlignMap = {
   // uint32_t: 0,

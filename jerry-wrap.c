@@ -13,6 +13,7 @@ const char *eval(const char *str) {
         jerry_init(JERRY_INIT_EMPTY);
 
         js_lvgl_obj_init();
+        js_lvgl_label_init();
     }
 
     const jerry_length_t script_len = strlen(str);
