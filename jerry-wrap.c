@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include "emscripten/websocket.h"
 #include "jerryscript.h"
 #include "jerry-lvgl-binding.h"
 
@@ -31,4 +32,24 @@ const char *eval(const char *str) {
     // jerry_release_value (ret_str);
     // jerry_cleanup ();
     return buff;
+}
+
+
+static const EmscriptenWebSocketCreateAttributes websocket_attr = {
+    .url = "ws://127.0.0.1:9001/",
+    .protocols = NULL,
+    .createOnMainThread = 1
+};
+
+
+void on_open_callback(int eventType, const EmscriptenWebSocketOpenEvent *websocketEvent, void *userData) {
+    emscripten_websocket_send_utf8_text(websocketEvent->socket, "hello");
+}
+
+void socket() { 
+    EMSCRIPTEN_WEBSOCKET_T soc = emscripten_websocket_new(&websocket_attr);
+    if (soc < 0) {
+        printf("websocket create failed!\n");
+    }
+    emscripten_websocket_set_onopen_callback(soc, "hello", on_open_callback);
 }
