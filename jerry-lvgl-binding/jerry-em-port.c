@@ -109,21 +109,38 @@ EM_BOOL em_websocket_onopen(int eventType, const EmscriptenWebSocketOpenEvent *w
 }
 
 EM_BOOL em_websocket_message(int eventType, const EmscriptenWebSocketMessageEvent *websocketEvent, void *userData) {
-  received_data.data = realloc(received_data.data, received_data.length + websocketEvent.numBytes);
-  memcpy(received_data.data + received_data.length, websocketEvent.data, websocketEvent.numBytes);
+  received_data.data = realloc(received_data.data, received_data.length + websocketEvent->numBytes);
+  memcpy(received_data.data + received_data.length, websocketEvent->data, websocketEvent->numBytes);
 }
 
-static bool jerry_em_debugger_send (jerry_debugger_transport_header_t *header, uint8_t *message, size_t len) {
+static bool jerry_em_debugger_send(jerry_debugger_transport_header_t *header, uint8_t *message, size_t len) {
   printf("send %d bytes.\n", len);
   EMSCRIPTEN_RESULT result = emscripten_websocket_send_binary(((jerry_em_debugger_transport_t *)header)->websocket, message, len);
   return result > 0;
 }
 
-static bool jerry_em_debugger_receive (jerry_debugger_transport_header_t *header, jerry_debugger_transport_receive_context_t *context) {
-  printf("receive %d bytes.\n", context->received_length);
+static bool jerry_em_debugger_receive(jerry_debugger_transport_header_t *header, jerry_debugger_transport_receive_context_t *context) {
+  printf("receive bytes.\n");
+  // EMSCRIPTEN_WEBSOCKET_T websocket = ((jerry_em_debugger_transport_t *) header)->websocket;
+
+  uint8_t *buffer = context->buffer_p + context->received_length;
+  size_t buffer_size = JERRY_DEBUGGER_TRANSPORT_MAX_BUFFER_SIZE - context->received_length;
+
+  while (!received_data.length) {
+    emscripten_sleep(10); // data can be received when sleep
+  }
+  if (buffer_size >= received_data.length) {
+    buffer_size = received_data.length;
+  }
+  memcpy(buffer, received_data.data, buffer_size);
+  size_t reserved_size = received_data.length - buffer_size;
+  memcpy(received_data.data, received_data.data + buffer_size, reserved_size);
+  received_data.data = realloc(received_data.data, reserved_size);
+  received_data.length = reserved_size;
+  return true;
 }
 
-static void jerry_em_debugger_close (jerry_debugger_transport_header_t *header) {
+static void jerry_em_debugger_close(jerry_debugger_transport_header_t *header) {
   printf("close!\n");
 }
 
@@ -134,11 +151,18 @@ bool jerry_em_debugger_create() {
   }
   emscripten_websocket_set_onopen_callback(socket, NULL, em_websocket_onopen);
   emscripten_websocket_set_onmessage_callback(socket, NULL, em_websocket_message);
-  for (int i = 0; i < 10; i++) {
+  printf("wait for open, before\n");
+  for (int i = 0; i < 1000; i++) {
     if (is_open) {
       break;
     }
-    emscripten_sleep(10);
+    // printf("i: %d\n");
+    // emscripten_sleep(10);
+  }
+  printf("wait for open, after\n");
+  if (!is_open) {
+    printf("waiting for open fails!\n");
+    return false;
   }
   
   jerry_debugger_transport_header_t *header = jerry_heap_alloc(sizeof(jerry_em_debugger_transport_t));
@@ -146,7 +170,7 @@ bool jerry_em_debugger_create() {
 
   header->send = jerry_em_debugger_send;
   header->receive = jerry_em_debugger_receive;
-  header_p->close = jerry_em_debugger_close;
+  header->close = jerry_em_debugger_close;
 
   jerry_debugger_transport_add(header, 0, JERRY_DEBUGGER_TRANSPORT_MAX_BUFFER_SIZE, 0, JERRY_DEBUGGER_TRANSPORT_MAX_BUFFER_SIZE);
   return true;

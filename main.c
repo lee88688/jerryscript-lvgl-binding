@@ -17,6 +17,9 @@
 #include "lv_drivers/indev/mouse.h"
 #include "lv_drivers/indev/mousewheel.h"
 #include "lv_drivers/indev/keyboard.h"
+#include "jerryscript.h"
+#include "jerryscript-ext/debugger.h"
+#include "jerry-lvgl-binding.h"
 
 #include "examplelist.h"
 
@@ -93,6 +96,16 @@ int main(int argc, char ** argv)
     } else {
         // extern void CHOSEN_DEMO(void);
         // CHOSEN_DEMO();
+    }
+
+    jerry_init(JERRY_INIT_EMPTY);
+    bool res = jerry_em_debugger_create() && jerryx_debugger_rp_create();
+    printf("create %d\n", res);
+    jerryx_debugger_after_connect(res);
+    if (jerry_debugger_is_connected()) {
+        printf("debugger is created.\n");
+    } else {
+        printf("fail to create debugger.\n");
     }
 
     emscripten_set_main_loop_arg(do_loop, NULL, -1, true);

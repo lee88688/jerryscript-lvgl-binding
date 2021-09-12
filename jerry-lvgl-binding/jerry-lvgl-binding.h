@@ -5,4 +5,6 @@
 #include "lvgl-obj.h"
 #include "lvgl-label.h"
 
+bool jerry_em_debugger_create();
+
 #endif /* JERRY_LVGL_BINDING_H */
