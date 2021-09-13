@@ -116,6 +116,7 @@ EM_BOOL em_websocket_message(int eventType, const EmscriptenWebSocketMessageEven
 static bool jerry_em_debugger_send(jerry_debugger_transport_header_t *header, uint8_t *message, size_t len) {
   printf("send %d bytes.\n", len);
   EMSCRIPTEN_RESULT result = emscripten_websocket_send_binary(((jerry_em_debugger_transport_t *)header)->websocket, message, len);
+  printf("send result: %d\n", result);
   return result > 0;
 }
 
@@ -156,8 +157,8 @@ bool jerry_em_debugger_create() {
     if (is_open) {
       break;
     }
-    // printf("i: %d\n");
-    // emscripten_sleep(10);
+    printf("i: %d\n");
+    emscripten_sleep(10);
   }
   printf("wait for open, after\n");
   if (!is_open) {
@@ -167,7 +168,8 @@ bool jerry_em_debugger_create() {
   
   jerry_debugger_transport_header_t *header = jerry_heap_alloc(sizeof(jerry_em_debugger_transport_t));
   if (!header) return false;
-
+  
+  ((jerry_em_debugger_transport_t *) header)->websocket = socket;
   header->send = jerry_em_debugger_send;
   header->receive = jerry_em_debugger_receive;
   header->close = jerry_em_debugger_close;
