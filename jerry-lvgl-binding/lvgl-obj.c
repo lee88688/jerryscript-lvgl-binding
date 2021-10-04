@@ -76,6 +76,64 @@ jerry_value_t lvgl_obj_opt_styles(const jerry_call_info_t *info, const jerry_val
     return jerry_create_undefined();
 }
 
+static jerry_value_t lvgl_obj_append_child(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
+    if (argc == 0) return jerry_create_undefined();
+
+    lv_obj_t *parent_obj = NULL;
+    lv_obj_t *child_obj = NULL;
+    if (js_lvgl_get_native_info(info->this_value, &parent_obj) && js_lvgl_get_native_info(argv[0], &child_obj)) {
+        lv_obj_set_parent(child_obj, parent_obj);
+    }
+
+    return jerry_create_undefined();
+}
+
+static jerry_value_t lvgl_obj_remove_child(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
+    if (argc == 0) return jerry_create_undefined();
+
+    lv_obj_t *child_obj = NULL;
+    if (js_lvgl_get_native_info(argv[0], &child_obj)) {
+        lv_obj_set_parent(child_obj, NULL);
+    }
+
+    return jerry_create_undefined();
+}
+
+static jerry_value_t lvgl_obj_insert_before(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
+    if (argc <= 2) return jerry_create_undefined();
+
+    lv_obj_t *parent_obj = NULL;
+    lv_obj_t *child_obj = NULL;
+    lv_obj_t *before_obj = NULL;
+    if (
+        js_lvgl_get_native_info(info->this_value, &parent_obj)
+        && js_lvgl_get_native_info(argv[0], &child_obj)
+        && js_lvgl_get_native_info(argv[1], &before_obj)
+    ) {
+        // todo: assert patent obj children length
+        // uint32_t len = lv_obj_get_child_cnt(parent_obj);
+        // if (len == 0) return jerry_create_undefined();
+        uint32_t before_index = lv_obj_get_child_id(before_obj);
+        // todo: assert before_index != 0xFFFFFFFF
+        // insert child to parent and move it to before
+        lv_obj_set_parent(parent_obj, child_obj);
+        uint32_t child_index = lv_obj_get_child_id(child_obj);
+        for (child_index = child_index - 1; child_index >= before_index; child_index--) {
+            parent_obj->spec_attr->children[child_index + 1] = parent_obj->spec_attr->children[child_index];
+        }
+        parent_obj->spec_attr->children[before_index] = child_obj;
+    }
+
+    return jerry_create_undefined();
+}
+
+static const jerry_function_entry js_obj_prototype_methods2[] = {
+    JERRY_CFUNC_DEF("optObjStyles", lvgl_obj_opt_styles),
+    JERRY_CFUNC_DEF("appendChild", lvgl_obj_append_child),
+    JERRY_CFUNC_DEF("removeChild", lvgl_obj_remove_child),
+    JERRY_CFUNC_DEF("insertBefore", lvgl_obj_remove_child),
+};
+
 void js_lvgl_obj_init() {
     jerry_value_t global = jerry_get_global_object();
 
@@ -83,9 +141,7 @@ void js_lvgl_obj_init() {
     jerry_value_t proto = jerry_create_object();
     jerry_set_prop_list(proto, js_obj_prototype_methods, countof(js_obj_prototype_methods));
 
-    jerry_value_t set_obj_styles = jerry_create_external_function(lvgl_obj_opt_styles);
-    jerryx_set_property_str(proto, "optObjStyles", set_obj_styles);
-    jerry_release_value(set_obj_styles);
+    jerry_set_prop_list(proto, js_obj_prototype_methods2, countof(js_obj_prototype_methods2));
 
     jerry_value_t native_info = jerry_create_number((uint32_t) &lvgl_obj_native_info);
     jerryx_set_property_str(proto, NATIVE_INFO_PROP_STR, native_info);
