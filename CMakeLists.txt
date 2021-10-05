@@ -60,6 +60,16 @@ set_target_properties(jerry_ext PROPERTIES
   IMPORTED_LOCATION "${PROJECT_SOURCE_DIR}/jerryscript/build/lib/libjerry-ext.a"
 )
 
+file(GLOB_RECURSE TESTS tests/*.c)
+add_library(tests STATIC ${TESTS})
+target_include_directories(tests PUBLIC
+    "${PROJECT_SOURCE_DIR}/lvgl"
+    "${PROJECT_SOURCE_DIR}/jerryscript/jerry-core/include"
+    "${PROJECT_SOURCE_DIR}/jerryscript/jerry-ext/include"
+    "${PROJECT_SOURCE_DIR}/jerry-lvgl-binding"
+    "${PROJECT_SOURCE_DIR}"
+)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -s USE_SDL=2")
 
 include_directories(
@@ -93,6 +103,7 @@ target_link_libraries(index PUBLIC
     lvgl lv_drivers lv_examples 
     # quickjs quickjs_lvgl_binding 
     jerry_lvgl_biding jerry_core jerry_ext
+    tests
 )
 
 if(NOT LVGL_CHOSEN_DEMO)
@@ -103,6 +114,6 @@ set_source_files_properties(main.c PROPERTIES COMPILE_FLAGS -DCHOSEN_DEMO=${LVGL
 
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
 # set(CMAKE_EXECUTABLE_SUFFIX ".js")
-set_target_properties(index PROPERTIES LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 --shell-file ${PROJECT_SOURCE_DIR}/lvgl_shell.html -s SINGLE_FILE=1 -s EXPORTED_FUNCTIONS=_eval,_main,_socket -s EXPORTED_RUNTIME_METHODS=cwrap,ccall -lwebsocket.js -s ASYNCIFY")
+set_target_properties(index PROPERTIES LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 --shell-file ${PROJECT_SOURCE_DIR}/lvgl_shell.html -s SINGLE_FILE=1 -s EXPORTED_FUNCTIONS=_eval,_main,_socket,_bi_test_main -s EXPORTED_RUNTIME_METHODS=cwrap,ccall -lwebsocket.js -s ASYNCIFY")
 # get_target_property(FLAG index LINK_FLAGS)
 # message(STATUS "${FLAG}")

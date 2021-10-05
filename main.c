@@ -98,15 +98,15 @@ int main(int argc, char ** argv)
         // CHOSEN_DEMO();
     }
 
-    jerry_init(JERRY_INIT_EMPTY);
-    bool res = jerry_em_debugger_create() && jerryx_debugger_rp_create();
-    printf("create %d\n", res);
-    jerryx_debugger_after_connect(res);
-    if (jerry_debugger_is_connected()) {
-        printf("debugger is created.\n");
-    } else {
-        printf("fail to create debugger.\n");
-    }
+    // jerry_init(JERRY_INIT_EMPTY);
+    // bool res = jerry_em_debugger_create() && jerryx_debugger_rp_create();
+    // printf("create %d\n", res);
+    // jerryx_debugger_after_connect(res);
+    // if (jerry_debugger_is_connected()) {
+    //     printf("debugger is created.\n");
+    // } else {
+    //     printf("fail to create debugger.\n");
+    // }
 
     emscripten_set_main_loop_arg(do_loop, NULL, -1, true);
 }

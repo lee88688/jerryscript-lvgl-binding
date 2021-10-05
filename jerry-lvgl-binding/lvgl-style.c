@@ -11,7 +11,7 @@ static void lvgl_style_free_cb (void *native_p, jerry_object_native_info_t *info
     lv_style_t *style = (lv_obj_t *) native_p;
     // todo: prop_cnt == 1
     if (style->prop_cnt > 0) {
-        free(style->v_p.const_props);
+        free((void *) style->v_p.const_props);
     }
     free(style);
 }
@@ -44,11 +44,15 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
             switch (prop_name) {
                 // color
                 case LV_STYLE_TEXT_COLOR:
-                case LV_STYLE_BG_COLOR:
+                case LV_STYLE_BG_COLOR: {
                     uint32_t v = jerry_value_as_uint32(value);
                     lv_style_value_t style_value = { .color = LV_COLOR_MAKE((v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff) };
+                    // lv_style_value_t style_value;
+                    // lv_color_t color = LV_COLOR_MAKE(((v >> 16) & 0xff), ((v >> 8) & 0xff), (v & 0xff));
+                    // style_value.color = color;
                     style_props[i].value = style_value;
                     break;
+                }
                 
                 // default for most of props
                 default:
@@ -77,7 +81,7 @@ static jerry_value_t create_lvgl_style(const jerry_call_info_t *info, const jerr
     if (argc == 0) return jerry_create_undefined();
 
     // jerry_value_t js_style_obj = argv[0];
-    bool iteration_result = jerry_foreach_object_property(argv[0], create_lvgl_style_foreach, argv);
+    bool iteration_result = jerry_foreach_object_property(argv[0], create_lvgl_style_foreach, (void *) argv);
 
     return jerry_create_undefined();
 }
