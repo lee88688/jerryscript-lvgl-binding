@@ -11,6 +11,7 @@ static const char *NAME = "LvglLabel";
 static void lvgl_label_free_cb(void *native_p, jerry_object_native_info_t *info_p) {
     BI_LOG_TRACE("deconstruct label\n");
     lv_obj_t *obj = (lv_obj_t *) native_p;
+    js_lvgl_detach_children(obj);
     lv_obj_del(obj);
 }
 
@@ -19,7 +20,7 @@ static const jerry_object_native_info_t lvgl_label_native_info = {
 };
 
 static jerry_value_t lvgl_label_constructor(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
-    lv_obj_t *obj = lv_label_create(lv_scr_act());
+    lv_obj_t *obj = lv_label_create(js_lvgl_get_detach_screen());
     jerry_set_object_native_pointer(
         info->this_value,
         obj,

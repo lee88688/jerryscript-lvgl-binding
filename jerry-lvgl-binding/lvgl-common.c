@@ -77,3 +77,21 @@ bool js_lvgl_get_native_info(jerry_value_t value, void **obj) {
     jerry_release_value(native_value_p);
     return ret;
 }
+
+lv_obj_t *js_lvgl_get_detach_screen() {
+    static lv_obj_t *detach_screen = NULL;
+    if (detach_screen == NULL) {
+        detach_screen = lv_obj_create(NULL);
+    }
+
+    return detach_screen;
+}
+
+void js_lvgl_detach_children(lv_obj_t *parent) {
+    uint32_t len = lv_obj_get_child_cnt(parent);
+
+    while (len) {
+        lv_obj_t *child = lv_obj_get_child(parent, len - 1);
+        lv_obj_set_parent(child, js_lvgl_get_detach_screen()); // todo: change to detach screen
+    }
+}

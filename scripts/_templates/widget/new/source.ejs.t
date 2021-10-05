@@ -14,6 +14,7 @@ static const char *NAME = "Lvgl<%= h.capitalize(widgetName) %>";
 static void lvgl_<%= h.changeCase.lower(widgetName) %>_free_cb (void *native_p, jerry_object_native_info_t *info_p) {
     BI_LOG_TRACE("deconstruct <%= h.changeCase.lower(widgetName) %>\n");
     lv_obj_t *obj = (lv_obj_t *) native_p;
+    js_lvgl_detach_children(obj);
     lv_obj_del(obj);
 }
 
@@ -22,7 +23,7 @@ static const jerry_object_native_info_t lvgl_<%= h.changeCase.lower(widgetName) 
 };
 
 static jerry_value_t lvgl_<%= h.changeCase.lower(widgetName) %>_constructor(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
-    lv_obj_t *obj = lv_<%= h.changeCase.lower(widgetName) %>_create(lv_scr_act());
+    lv_obj_t *obj = lv_<%= h.changeCase.lower(widgetName) %>_create(js_lvgl_get_detach_screen());
     jerry_set_object_native_pointer(
         info->this_value,
         obj,

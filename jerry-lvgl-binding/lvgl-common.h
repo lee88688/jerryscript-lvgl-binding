@@ -100,4 +100,7 @@ void jerry_set_prop_list(jerry_value_t value, const jerry_function_entry *entrie
 char *jerry_to_c_string(jerry_value_t value);
 void jerry_free_c_string(char *str);
 
+lv_obj_t *js_lvgl_get_detach_screen();
+void js_lvgl_detach_children(lv_obj_t *parent);
+
 #endif /* LVGL_COMMON_H */
