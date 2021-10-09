@@ -11,7 +11,7 @@ void test_append_child() {
     js_lvgl_obj_init();
 
     const char code[] = "let a = new LvglObj(); let b = new LvglObj(); let c = new LvglObj(); a.appendChild(c); a.appendChild(b); [a, b];";
-    jerry_value_t ret = jerry_eval(code, sizeof(code) - 1, JERRY_PARSE_NO_OPTS);
+    jerry_value_t ret = jerry_eval((const jerry_char_t *) code, sizeof(code) - 1, JERRY_PARSE_NO_OPTS);
 
     char *str = NULL;
     BI_ASSERT_TRUE(!jerry_value_is_error(ret), str = jerry_to_c_string(jerry_get_value_from_error(ret, true)));
@@ -23,7 +23,7 @@ void test_append_child() {
     jerry_value_t b = jerry_get_property_by_index(ret, 1);
     lv_obj_t *a_obj = NULL;
     lv_obj_t *b_obj = NULL;
-    if (js_lvgl_get_native_info(a, &a_obj) && js_lvgl_get_native_info(b, &b_obj)) {
+    if (js_lvgl_get_native_info(a, (void **) &a_obj) && js_lvgl_get_native_info(b, (void **) &b_obj)) {
         uint32_t index = lv_obj_get_child_id(b_obj);
         BI_ASSERT_TRUE(index == 1, "");
         BI_ASSERT_TRUE(b_obj->parent == a_obj, "");

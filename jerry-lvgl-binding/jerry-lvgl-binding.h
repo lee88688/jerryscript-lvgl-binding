@@ -5,6 +5,7 @@
 #include "lvgl-obj.h"
 #include "lvgl-label.h"
 #include "lvgl-style.h"
+#include "jerry-runtime.h"
 
 bool jerry_em_debugger_create();
 
