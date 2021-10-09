@@ -38,7 +38,7 @@ void bi_test_assert(const char * file, int line, const char * func, const char *
 void bi_test_assert_true(int32_t expression, const char *expression_str, const char * file, int line, const char * s)
 {
     if(!expression) {
-        bi_test_error("   FAIL: %s. expression %s(Expected: not false), at file(%s) line(%d)\n", s, expression_str, file, line);
+        bi_test_error("   FAIL: %s. expression: %s(Expected: true), at file(%s) line(%d)\n", s, expression_str, file, line);
         emscripten_force_exit(1);
     } else {
         // bi_test_print("   PASS: %s. (Expected: not false)", s, expression);
