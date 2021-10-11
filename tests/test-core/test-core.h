@@ -6,4 +6,6 @@ void test_remove_child();
 void test_insert_before_without_append();
 void test_insert_before_with_append();
 
+void test_lvgl_common_utf8_string();
+
 #endif

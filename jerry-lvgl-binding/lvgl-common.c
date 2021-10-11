@@ -51,9 +51,9 @@ void jerry_set_prop_list(jerry_value_t value, const jerry_function_entry *entrie
 
 char *jerry_to_c_string(jerry_value_t value) {
     if (jerry_value_is_string(value)) {
-        jerry_length_t len = jerry_get_string_length(value);
+        jerry_length_t len = jerry_get_utf8_string_size(value);
         char *str = malloc(len + 1);
-        jerry_string_to_char_buffer(value, str, len + 1);
+        jerry_string_to_utf8_char_buffer(value, (const jerry_char_t *)str, len + 1);
         str[len] = '\0';
         return str;
     }
@@ -64,6 +64,16 @@ void jerry_free_c_string(char *str) {
     if (!str) {
         free(str);
     }
+}
+
+jerry_char_t *jerry_to_utf8_string(jerry_value_t value, jerry_size_t *len) {
+    if (jerry_value_is_string(value) && len) {
+        jerry_size_t size = jerry_get_utf8_string_size(value);
+        jerry_char_t *str = malloc(size);
+        *len = jerry_string_to_utf8_char_buffer(value, str, size);
+        return str;
+    }
+    return NULL;
 }
 
 bool js_lvgl_get_native_info(jerry_value_t value, void **obj) {

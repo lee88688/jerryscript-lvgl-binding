@@ -12,25 +12,25 @@ void _bi_log(lv_log_level_t level, const char * file, int line, const char * fun
 #define BI_LOG_LEVEL LV_LOG_LEVEL_TRACE
 
 #if BI_LOG_LEVEL <= LV_LOG_LEVEL_TRACE
-#define BI_LOG_TRACE(...) _bi_log(LV_LOG_LEVEL_TRACE, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define BI_LOG_TRACE(...) _bi_log(LV_LOG_LEVEL_TRACE, __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
 #define BI_LOG_TRACE(...)
 #endif
 
 #if BI_LOG_LEVEL <= LV_LOG_LEVEL_INFO
-#define BI_LOG_INFO(...) _bi_log(LV_LOG_LEVEL_INFO, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define BI_LOG_INFO(...) _bi_log(LV_LOG_LEVEL_INFO, __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
 #define BI_LOG_INFO(...)
 #endif
 
 #if BI_LOG_LEVEL <= LV_LOG_LEVEL_WARN
-#define BI_LOG_WARN(...) _bi_log(LV_LOG_LEVEL_WARN, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define BI_LOG_WARN(...) _bi_log(LV_LOG_LEVEL_WARN, __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
 #define BI_LOG_WARN(...)
 #endif
 
 #if BI_LOG_LEVEL <= LV_LOG_LEVEL_ERROR
-#define BI_LOG_ERROR(...) _bi_log(LV_LOG_LEVEL_ERROR, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define BI_LOG_ERROR(...) _bi_log(LV_LOG_LEVEL_ERROR, __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
 #define BI_LOG_ERROR(...)
 #endif
@@ -99,6 +99,8 @@ void jerry_set_prop_list(jerry_value_t value, const jerry_function_entry *entrie
 
 char *jerry_to_c_string(jerry_value_t value);
 void jerry_free_c_string(char *str);
+
+jerry_char_t *jerry_to_utf8_string(jerry_value_t value, jerry_size_t *len);
 
 lv_obj_t *js_lvgl_get_detach_screen();
 void js_lvgl_detach_children(lv_obj_t *parent);

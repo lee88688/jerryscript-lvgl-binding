@@ -1,6 +1,6 @@
 #include "jerryscript.h"
 #include "lvgl.h"
-#include "../bi_test_assert.h"
+#include "../bi-test-assert.h"
 #include "lvgl-common.h"
 #include "jerry-lvgl-binding.h"
 
