@@ -98,7 +98,10 @@ int main(int argc, char ** argv)
         // CHOSEN_DEMO();
     }
 
-    // jerry_init(JERRY_INIT_EMPTY);
+    jerry_init(JERRY_INIT_EMPTY);
+    js_lvgl_obj_init()
+    js_lvgl_label_init();
+    js_runtime_init();
     // bool res = jerry_em_debugger_create() && jerryx_debugger_rp_create();
     // printf("create %d\n", res);
     // jerryx_debugger_after_connect(res);
@@ -113,6 +116,7 @@ int main(int argc, char ** argv)
 
 void do_loop(void *arg)
 {
+    js_event_loop();
     /* Periodically call the lv_task handler.
      * It could be done in a timer interrupt or an OS task too.*/
     lv_task_handler();

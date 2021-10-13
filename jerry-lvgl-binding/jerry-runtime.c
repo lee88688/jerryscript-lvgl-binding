@@ -45,6 +45,16 @@ void js_runtime_init() {
 
 void js_event_loop() {
     jerry_value_t job_value;
+
+    jerry_value_t g = jerry_get_global_object();
+    jerry_value_t fn = jerryx_get_property_str(g, "execTimeoutFn");
+    bool can_start = jerry_value_is_false(fn);
+    jerry_release_value(fn);
+    jerry_release_value(g);
+    if (!can_start) {
+        return;
+    }
+
     while (true) {
         job_value = jerry_run_all_enqueued_jobs();
         if (jerry_value_is_error(job_value)) {
