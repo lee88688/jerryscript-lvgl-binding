@@ -113,7 +113,7 @@ set_source_files_properties(main.c PROPERTIES COMPILE_FLAGS -DCHOSEN_DEMO=${LVGL
 # set_property(TARGET index PROPERTY COMPILE_FLAGS "${COMPILE_FLAGS} -s EXPORTED_FUNCTIONS='[\"_eval\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\"]'")
 
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
-# set(CMAKE_EXECUTABLE_SUFFIX ".js")
-set_target_properties(index PROPERTIES LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 --shell-file ${PROJECT_SOURCE_DIR}/lvgl_shell.html -s SINGLE_FILE=1 -s EXPORTED_FUNCTIONS=_eval,_main,_socket,_bi_test_main -s EXPORTED_RUNTIME_METHODS=cwrap,ccall -lwebsocket.js -s ASYNCIFY")
+set(CMAKE_EXECUTABLE_SUFFIX ".js")
+set_target_properties(index PROPERTIES LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 --shell-file ${PROJECT_SOURCE_DIR}/lvgl_shell.html -s SINGLE_FILE=1 -s EXPORTED_FUNCTIONS=_eval,_run,_main,_socket,_bi_test_main -s EXPORTED_RUNTIME_METHODS=cwrap,ccall -lwebsocket.js -s ASYNCIFY")
 # get_target_property(FLAG index LINK_FLAGS)
 # message(STATUS "${FLAG}")

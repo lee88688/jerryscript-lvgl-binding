@@ -99,9 +99,10 @@ int main(int argc, char ** argv)
     }
 
     jerry_init(JERRY_INIT_EMPTY);
-    js_lvgl_obj_init()
+    js_lvgl_obj_init();
     js_lvgl_label_init();
     js_runtime_init();
+
     // bool res = jerry_em_debugger_create() && jerryx_debugger_rp_create();
     // printf("create %d\n", res);
     // jerryx_debugger_after_connect(res);
