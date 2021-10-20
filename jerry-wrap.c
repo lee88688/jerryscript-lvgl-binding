@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include "emscripten.h"
 #include "emscripten/websocket.h"
 #include "jerryscript.h"
 #include "jerryscript-ext/debugger.h"
@@ -37,22 +38,25 @@ const char *eval(const char *str) {
 }
 
 void run(const char *str) {
-    bool res = jerry_em_debugger_create() && jerryx_debugger_rp_create();
-    printf("create %d\n", res);
-    jerryx_debugger_after_connect(res);
-    if (jerry_debugger_is_connected()) {
-        printf("debugger is created.\n");
-    } else {
-        printf("fail to create debugger.\n");
-    }
+    // bool res = jerry_em_debugger_create() && jerryx_debugger_rp_create();
+    // printf("create %d\n", res);
+    // jerryx_debugger_after_connect(res);
+    // if (jerry_debugger_is_connected()) {
+    //     printf("debugger is created.\n");
+    // } else {
+    //     printf("fail to create debugger.\n");
+    // }
 
     const jerry_length_t script_len = strlen(str);
     // jerry_value_t eval_ret = jerry_eval(str, script_len, JERRY_PARSE_NO_OPTS);
-    jerry_parse_options_t parseOption = { .options = JERRY_PARSE_NO_OPTS };
+    jerry_parse_options_t parseOption = { .options = JERRY_PARSE_HAS_RESOURCE };
+    char file_name[] = "main.js";
+    parseOption.resource_name = jerry_create_string_sz(file_name, sizeof(file_name) - 1);
     jerry_value_t ret = jerry_parse(str, script_len, &parseOption);
 
     if (!jerry_value_is_error(ret)) {
         jerry_value_t parsed_code = ret;
+        printf("run code\n");
         ret = jerry_run(parsed_code);
         jerry_release_value(parsed_code);
     }

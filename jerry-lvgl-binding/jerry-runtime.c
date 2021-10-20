@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include "lvgl.h"
 #include "jerryscript.h"
 #include "jerryscript-ext/handler.h"
 #include "lvgl-common.h"
@@ -27,9 +28,24 @@ static jerry_value_t js_console_warn(const jerry_call_info_t *info, const jerry_
     return jerry_create_undefined();
 }
 
-static const jerry_function_entry js_obj_prototype_methods[] = {
+static jerry_value_t js_attach_to_screen(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
+    if (argc == 0) return jerry_create_undefined();
+
+    lv_obj_t *obj = NULL;
+    if (js_lvgl_get_native_info(argv[0], (void **) &obj)) {
+        lv_obj_set_parent(obj, lv_scr_act());
+    }
+
+    return jerry_create_undefined();
+}
+
+static const jerry_function_entry js_console_prototype_methods[] = {
     JERRY_CFUNC_DEF("log", jerryx_handler_print),
     JERRY_CFUNC_DEF("warn", js_console_warn),
+};
+
+static const jerry_function_entry js_global_prototype_methods[] = {
+    JERRY_CFUNC_DEF("attachToScreen", js_attach_to_screen),
 };
 
 void js_runtime_init() {
@@ -37,7 +53,8 @@ void js_runtime_init() {
     jerry_value_t console = jerry_create_object();
     
     jerryx_set_property_str(global, "console", console);
-    jerry_set_prop_list(console, js_obj_prototype_methods, countof(js_obj_prototype_methods));
+    jerry_set_prop_list(console, js_console_prototype_methods, countof(js_console_prototype_methods));
+    jerry_set_prop_list(global, js_global_prototype_methods, countof(js_global_prototype_methods));
 
     jerry_release_value(console);
     jerry_release_value(global);
@@ -48,10 +65,11 @@ void js_event_loop() {
 
     jerry_value_t g = jerry_get_global_object();
     jerry_value_t fn = jerryx_get_property_str(g, "execTimeoutFn");
-    bool can_start = jerry_value_is_false(fn);
+    bool is_undefined = jerry_value_is_undefined(fn);
     jerry_release_value(fn);
     jerry_release_value(g);
-    if (!can_start) {
+    if (is_undefined) {
+        BI_LOG_TRACE("event loop not ready!");
         return;
     }
 

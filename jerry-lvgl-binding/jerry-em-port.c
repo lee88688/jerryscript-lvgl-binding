@@ -114,9 +114,9 @@ EM_BOOL em_websocket_message(int eventType, const EmscriptenWebSocketMessageEven
 }
 
 static bool jerry_em_debugger_send(jerry_debugger_transport_header_t *header, uint8_t *message, size_t len) {
-  printf("send %d bytes.\n", len);
+  // printf("send %d bytes.\n", len);
   EMSCRIPTEN_RESULT result = emscripten_websocket_send_binary(((jerry_em_debugger_transport_t *)header)->websocket, message, len);
-  printf("send result: %d\n", result);
+  // printf("send result: %d\n", result);
   return result > 0;
 }
 
@@ -130,6 +130,7 @@ static bool jerry_em_debugger_receive(jerry_debugger_transport_header_t *header,
   while (!received_data.length) {
     emscripten_sleep(10); // data can be received when sleep
   }
+  printf("get data\n");
   if (buffer_size >= received_data.length) {
     buffer_size = received_data.length;
   }
