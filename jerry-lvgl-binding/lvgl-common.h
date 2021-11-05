@@ -105,4 +105,6 @@ jerry_char_t *jerry_to_utf8_string(jerry_value_t value, jerry_size_t *len);
 lv_obj_t *js_lvgl_get_detach_screen();
 void js_lvgl_detach_children(lv_obj_t *parent);
 
+void print_obj_style_info(lv_obj_t *obj, int32_t expand_index);
+
 #endif /* LVGL_COMMON_H */

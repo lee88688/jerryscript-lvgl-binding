@@ -105,3 +105,29 @@ void js_lvgl_detach_children(lv_obj_t *parent) {
         lv_obj_set_parent(child, js_lvgl_get_detach_screen()); // todo: change to detach screen
     }
 }
+
+void print_obj_style_info(lv_obj_t *obj, int32_t expand_index) {
+    printf("[style info] obj: %d, style cnt: %d\n", obj, obj->style_cnt);
+    uint32_t i = 0;
+    for (i = 0; i < obj->style_cnt; i++) {
+        printf("index: %d, is_local: %d, is_trans: %d, selector: %d\n", i, obj->styles[i].is_local, obj->styles[i].is_trans, obj->styles[i].selector);
+        if (i == expand_index || expand_index == -1) {
+            uint32_t j = 0;
+            lv_style_t *style = obj->styles[i].style;
+            printf("  [expand] prop_cnt: %d, is_const: %d\n", style->prop_cnt, style->is_const);
+            if (style->prop_cnt > 1 && style->is_const) {
+                for(j = 0; j < style->prop_cnt; j++) {
+                    printf("    prop: %u, value: %d\n", style->v_p.const_props[j].prop, style->v_p.const_props[j].value.num);
+                }
+            } else if (style->prop_cnt > 1 && !style->is_const) {
+                uint16_t *props = (uint16_t *) (style->v_p.values_and_props + style->prop_cnt * sizeof(lv_style_value_t));
+                lv_style_value_t *values = (lv_style_value_t *) style->v_p.values_and_props;
+                for(j = 0; j < style->prop_cnt; j++) {
+                    printf("    prop: %u, value: %u\n", props[j], values[j].num);
+                }
+            } else {
+                printf("    prop: %u, value: %u\n", style->prop1, style->v_p.value1.num);
+            }
+        }
+    }
+}

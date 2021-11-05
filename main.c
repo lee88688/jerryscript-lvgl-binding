@@ -102,6 +102,7 @@ int main(int argc, char ** argv)
     js_lvgl_obj_init();
     js_lvgl_label_init();
     js_runtime_init();
+    js_lvgl_style_init();
 
     // bool res = jerry_em_debugger_create() && jerryx_debugger_rp_create();
     // printf("create %d\n", res);

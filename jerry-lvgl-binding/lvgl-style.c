@@ -5,9 +5,11 @@
 #include "lvgl.h"
 #include "jerryscript.h"
 #include "jerryscript-ext/handler.h"
+#include "lvgl-common.h"
 
 
 static void lvgl_style_free_cb (void *native_p, jerry_object_native_info_t *info_p) {
+    BI_LOG_TRACE("free style");
     lv_style_t *style = (lv_obj_t *) native_p;
     // todo: prop_cnt == 1
     if (style->prop_cnt > 0) {
@@ -27,10 +29,10 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
     lv_style_t *style = (lv_style_t *) malloc(sizeof(lv_style_t));
     lv_style_init(style);
     style->is_const = 1; // prevent lvgl modifying
+    style->has_group = 0xff; // LV_STYLE_CONST_INIT
     jerry_value_t attributes = jerryx_get_property_str(obj_prop_value, "attributes");
     uint8_t prop_cnt = jerry_get_array_length(attributes);
-    // todo: prop_cnt == 1
-    if (prop_cnt != 0) {
+    if (prop_cnt > 1) {
         style->prop_cnt = prop_cnt;
         lv_style_const_prop_t *style_props = malloc(sizeof(lv_style_const_prop_t) * prop_cnt);
         uint8_t i = 0;
@@ -65,6 +67,20 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
             jerry_release_value(attr);
         }
         style->v_p.const_props = style_props;
+    } else if (prop_cnt == 1) {
+        style->prop_cnt = prop_cnt;
+        jerry_value_t attr = jerry_get_property_by_index(attributes, 0);
+        jerry_value_t name = jerryx_get_property_str(attr, "name");
+        jerry_value_t value = jerryx_get_property_str(attr, "value");
+
+        // todo: set prop value need int32
+        style->prop1 = jerry_value_as_uint32(name);
+        style->v_p.value1.num = jerry_value_as_int32(value);
+        // lv_style_set_prop(style, jerry_value_as_uint32(name), (lv_style_value_t) {.num = jerry_value_as_int32(value)});
+
+        jerry_release_value(attr);
+        jerry_release_value(name);
+        jerry_release_value(value);
     }
 
     jerry_set_object_native_pointer(
@@ -82,6 +98,9 @@ static jerry_value_t create_lvgl_style(const jerry_call_info_t *info, const jerr
 
     // jerry_value_t js_style_obj = argv[0];
     bool iteration_result = jerry_foreach_object_property(argv[0], create_lvgl_style_foreach, (void *) argv);
+    if (iteration_result) {
+        return jerry_acquire_value(argv[0]);
+    }
 
     return jerry_create_undefined();
 }
@@ -93,4 +112,8 @@ void js_lvgl_style_init() {
     jerryx_set_property_str(global, "createLvglStyles", func);
 
     jerry_release_value(global);
+}
+
+jerry_object_native_info_t *get_lvgl_style_native_info() {
+    return &lvgl_style_native_info;
 }

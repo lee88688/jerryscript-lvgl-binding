@@ -2,6 +2,7 @@
 #include "jerryscript-core.h"
 #include "jerryscript-ext/handler.h"
 #include "lvgl-common.h"
+#include "lvgl-style.h"
 
 static const char *NAME = "LvglObj";
 
@@ -42,7 +43,7 @@ jerry_value_t lvgl_obj_opt_styles(const jerry_call_info_t *info, const jerry_val
     bool is_array = jerry_value_is_array(argv[1]);
     if (!is_array) {
         lv_style_t *style = NULL;
-        bool have_native_style = jerry_get_object_native_pointer(obj_or_arr, (void **) &style, &lvgl_obj_native_info);
+        bool have_native_style = jerry_get_object_native_pointer(obj_or_arr, (void **) &style, get_lvgl_style_native_info());
         if (have_native_style) {
             jerry_value_t selector = jerryx_get_property_str(obj_or_arr, "selector");
             if (type == 1) {
@@ -59,7 +60,7 @@ jerry_value_t lvgl_obj_opt_styles(const jerry_call_info_t *info, const jerry_val
         for(i = 0; i < len; i++) {
             jerry_value_t v = jerry_get_property_by_index(arr, i);
             lv_style_t *style = NULL;
-            bool have_native_style = jerry_get_object_native_pointer(v, (void **)&style, &lvgl_obj_native_info);
+            bool have_native_style = jerry_get_object_native_pointer(v, (void **)&style, get_lvgl_style_native_info());
             if (have_native_style) {
                 jerry_value_t selector = jerryx_get_property_str(v, "selector");
                 if (type == 1) {

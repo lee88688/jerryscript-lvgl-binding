@@ -93,13 +93,13 @@ void js_event_loop() {
         } else {
             // microtask is done, then execute macrotask(setTimeout)
             // when macrotask is empty, exit event loop to give cpu time to lvgl
-            BI_LOG_TRACE("start macrotask.");
+            // BI_LOG_TRACE("start macrotask.");
             jerry_value_t global = jerry_get_global_object();
             jerry_value_t exec_timeout_fn = jerryx_get_property_str(global, "execTimeoutFn");
             jerry_value_t ret = jerry_call_function(exec_timeout_fn, global, NULL, 0);
             // timeout queue is empty
             if (!jerry_value_to_boolean(ret)) {
-                BI_LOG_TRACE("macrotask is empty.");
+                // BI_LOG_TRACE("macrotask is empty.");
                 jerry_release_value(job_value);
                 break;
             }
