@@ -1,16 +1,20 @@
+#include <stdlib.h>
 #include "lvgl.h"
 #include "jerryscript-core.h"
 #include "jerryscript-ext/handler.h"
 #include "lvgl-common.h"
 #include "lvgl-style.h"
+#include "lvgl-event.h"
 
 static const char *NAME = "LvglObj";
+static const char *USER_DATA_PROP_NAME = "_ud";
 
 static void lvgl_obj_free_cb (void *native_p, jerry_object_native_info_t *info_p)
 {
     BI_LOG_TRACE("deconstruct");
     lv_obj_t *obj = (lv_obj_t *) native_p;
     js_lvgl_detach_children(obj);
+    lvgl_event_clear_user_data(obj);
     lv_obj_del(obj);
 }
 
@@ -131,11 +135,70 @@ static jerry_value_t lvgl_obj_insert_before(const jerry_call_info_t *info, const
     return jerry_create_undefined();
 }
 
+static void common_event_cb(lv_event_t *event) {
+    jerry_value_t e = lvgl_event_create(event);
+
+    lvgl_event_user_data_t *user_data = (lvgl_event_user_data_t *) lv_event_get_user_data(event);
+    if (user_data) {
+        jerry_value_t argv[] = { e };
+        jerry_call_function(user_data->func, jerry_create_undefined(), argv, 1);
+        lvgl_event_clear_after_call(e);
+    }
+
+    jerry_release_value(e);
+}
+
+/**
+ * argv[0] lv_event_code_t
+ * argv[1] js function: (event) => void
+ */
+static jerry_value_t lvgl_obj_add_event_listener(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
+    if (argc < 2) return jerry_create_boolean(false);
+    
+    lv_obj_t *obj = NULL;
+    if (js_lvgl_get_native_info(info->this_value, (void **) &obj) && jerry_value_is_function(argv[1])) {
+        // argv[1] is jerry function, just uint32_t, todo: need some check whethe it is true
+        jerry_acquire_value(argv[1]);
+        jerry_acquire_value(info->this_value);
+        lvgl_event_user_data_t *user_data = (lvgl_event_user_data_t *) malloc(sizeof(lvgl_event_user_data_t));
+        user_data->target = info->this_value;
+        user_data->func = argv[1];
+
+        lv_obj_add_event_cb(obj, common_event_cb, jerry_value_as_uint32(argv[0]), (void *) user_data);
+        return jerry_create_boolean(true);
+    }
+
+    return jerry_create_boolean(false);
+}
+
+/**
+ * argv[0] lv_event_code_t
+ * argv[1] js function
+ */
+static jerry_value_t lvgl_obj_remove_event_listener(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
+    if (argc < 2) return jerry_create_boolean(false);
+
+    lv_obj_t *obj = NULL;
+    if (js_lvgl_get_native_info(info->this_value, (void **) &obj) && jerry_value_is_function(argv[1])) {
+        lvgl_event_user_data_t *user_data = lvgl_event_get_user_data_from_obj(obj, argv[1]);
+        if (!user_data) return jerry_create_boolean(false);
+
+        lv_obj_remove_event_cb_with_user_data(obj, common_event_cb, (void *) user_data);
+        jerry_release_value(argv[1]);
+        jerry_release_value(info->this_value);
+        return jerry_create_boolean(true);
+    }
+
+    return jerry_create_boolean(false);
+}
+
 static const jerry_function_entry js_obj_prototype_methods2[] = {
     JERRY_CFUNC_DEF("optObjStyles", lvgl_obj_opt_styles),
     JERRY_CFUNC_DEF("appendChild", lvgl_obj_append_child),
     JERRY_CFUNC_DEF("removeChild", lvgl_obj_remove_child),
     JERRY_CFUNC_DEF("insertBefore", lvgl_obj_insert_before),
+    JERRY_CFUNC_DEF("addEventListener", lvgl_obj_add_event_listener),
+    JERRY_CFUNC_DEF("removeEventListener", lvgl_obj_remove_event_listener),
 };
 
 void js_lvgl_obj_init() {
