@@ -9,13 +9,18 @@
 static const char *NAME = "LvglObj";
 static const char *USER_DATA_PROP_NAME = "_ud";
 
+// destruct obj, this will free obj and related resource
+void lvgl_obj_desctruct(lv_obj_t *obj) {
+    js_lvgl_detach_children(obj);
+    lvgl_event_clear_user_data(obj);
+    lv_obj_del(obj);
+}
+
 static void lvgl_obj_free_cb (void *native_p, jerry_object_native_info_t *info_p)
 {
     BI_LOG_TRACE("deconstruct");
     lv_obj_t *obj = (lv_obj_t *) native_p;
-    js_lvgl_detach_children(obj);
-    lvgl_event_clear_user_data(obj);
-    lv_obj_del(obj);
+    lvgl_obj_desctruct(obj);
 }
 
 static const jerry_object_native_info_t lvgl_obj_native_info = {

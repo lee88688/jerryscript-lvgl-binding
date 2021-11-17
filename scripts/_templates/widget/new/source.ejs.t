@@ -14,8 +14,7 @@ static const char *NAME = "Lvgl<%= h.capitalize(widgetName) %>";
 static void lvgl_<%= h.changeCase.lower(widgetName) %>_free_cb (void *native_p, jerry_object_native_info_t *info_p) {
     BI_LOG_TRACE("deconstruct <%= h.changeCase.lower(widgetName) %>");
     lv_obj_t *obj = (lv_obj_t *) native_p;
-    js_lvgl_detach_children(obj);
-    lv_obj_del(obj);
+    lvgl_obj_desctruct(obj);
 }
 
 static const jerry_object_native_info_t lvgl_<%= h.changeCase.lower(widgetName) %>_native_info = {
