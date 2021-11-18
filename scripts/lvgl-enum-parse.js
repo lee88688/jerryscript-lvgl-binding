@@ -3,39 +3,36 @@ const path = require('path');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers')
 
-const enumReg = /enum\s*\{[^]*?\}[^]*?lv_align_t/
+// const argv = yargs(hideBin(process.argv))
+//   .options({
+//     f: {
+//       alias: 'file',
+//       demandOption: true,
+//       type: 'string',
+//       describe: 'enum file name'
+//     },
+//     d: {
+//       alias: 'define',
+//       demandOption: true,
+//       type: 'string',
+//       describe: 'define type name'
+//     }
+//   })
+//   .help()
+//   .parse();
 
-const argv = yargs(hideBin(process.argv))
-  .options({
-    f: {
-      alias: 'file',
-      demandOption: true,
-      type: 'string',
-      describe: 'enum file name'
-    },
-    d: {
-      alias: 'define',
-      demandOption: true,
-      type: 'string',
-      describe: 'define type name'
-    }
-  })
-  .help()
-  .parse();
 
-// console.log(argv);
-const lvglPath = path.resolve(__dirname, '../lvgl/src');
-
-async function main() {
+async function main(file, define) {
+  const lvglPath = path.resolve(__dirname, '../lvgl/src');
   const dirs = [lvglPath];
   let p;
   let found = false;
   let foundPath = '';
   while ((p = dirs.shift())) {
     const paths = await fs.promises.readdir(p);
-    found = paths.includes(argv.f);
+    found = paths.includes(file);
     if (found) {
-      foundPath = path.resolve(p, argv.f);
+      foundPath = path.resolve(p, file);
       break;
     }
     await Promise.all(paths.map(async subp => {
@@ -46,10 +43,10 @@ async function main() {
     }));
   }
   if (!found) {
-    console.log(`can not find file(${argv.f})`);
+    console.log(`can not find file(${file})`);
   }
   const content = await fs.promises.readFile(foundPath, 'utf8');
-  const m = content.match(new RegExp(`enum\\s*\\{([^]*?)\\}[^]*?${argv.d};`));
+  const m = content.match(new RegExp(`enum\\s*\\{([^]*?)\\}[^]*?${define};`));
   const statements = m[1];
   const matches = statements.matchAll(/^\s*(?!\/\*|\/\/)(\w+)\s*=?(.*?)$/gm);
   let lastValue = 0;
@@ -62,7 +59,8 @@ async function main() {
     arr.push([name, lastValue]);
     lastValue++;
   }
-  console.log(arr.join('\n'));
+  return arr;
 }
 
-main();
+// main(argv.f, argv.define);
+module.exports = main;

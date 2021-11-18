@@ -21,7 +21,7 @@ typedef struct _lv_event_dsc_t {
 
 
 static void lvgl_event_free_cb (void *native_p, jerry_object_native_info_t *info_p) {
-    BI_LOG_TRACE("event style");
+    BI_LOG_TRACE("free event struct");
     lv_event_t *e = (lv_event_t *) native_p;
     free(e);
 }
