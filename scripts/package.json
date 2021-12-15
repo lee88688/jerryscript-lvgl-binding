@@ -4,7 +4,9 @@
   "description": "",
   "main": "style_func_gen.js",
   "scripts": {
-    "gen-style-func": "node style_func_gen.js"
+    "gen-style-func": "node style_func_gen.js",
+    "gen-constants": "node lvgl-constant-genetate.js",
+    "pregen-constants": "rimraf constants/*.js constants/*.js"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +14,7 @@
   "dependencies": {
     "hygen": "^6.1.0",
     "lodash": "^4.17.21",
+    "rimraf": "^3.0.2",
     "yargs": "^17.2.1"
   }
 }

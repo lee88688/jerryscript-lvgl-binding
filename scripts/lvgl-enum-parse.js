@@ -22,7 +22,7 @@ const { hideBin } = require('yargs/helpers')
 //   .parse();
 
 
-async function main(file, define) {
+async function parser(file, define) {
   const lvglPath = path.resolve(__dirname, '../lvgl/src');
   const dirs = [lvglPath];
   let p;
@@ -46,21 +46,42 @@ async function main(file, define) {
     console.log(`can not find file(${file})`);
   }
   const content = await fs.promises.readFile(foundPath, 'utf8');
-  const m = content.match(new RegExp(`enum\\s*\\{([^]*?)\\}[^]*?${define};`));
+  const m = content.match(new RegExp(`enum\\s*\\{([^{]*?)\\}[^{]*?${define};`));
   const statements = m[1];
   const matches = statements.matchAll(/^\s*(?!\/\*|\/\/)(\w+)\s*=?(.*?)$/gm);
   let lastValue = 0;
   const arr = [];
   for (const [_, name, value] of matches) {
-    const parsed = Number.parseInt(value);
+    let finalValue = value;
+    let commentStr = '';
+    const mComment = finalValue.match(/(\/\/.*?$)|(\/\*.*?\*\/)/);
+    if (mComment) {
+      commentStr = mComment[1] ? mComment[1] : mComment[2];
+      finalValue = finalValue.slice(0, mComment.index)
+    }
+
+    finalValue = finalValue.replace(',', '');
+
+    const mDefine = finalValue.match(/\s([A-Za-z_]+)/g);
+    let hasDefine = false;
+    if (mDefine) {
+      for (let i = 0; i < mDefine.length; i++) {
+        const m = content.match(new RegExp(`#define\\s*${mDefine[i]}\\s*(\\(.*?\\))`));
+        if (!m) console.log(mDefine[i]);
+        finalValue = finalValue.replace(mDefine[i], m[1]);
+      }
+      hasDefine = true
+    }
+
+    const parsed = hasDefine ? eval(finalValue) : Number.parseInt(finalValue);
     if (value && !Number.isNaN(parsed)) {  
       lastValue = parsed;
     }
-    arr.push([name, lastValue]);
+    arr.push([name, lastValue, commentStr]);
     lastValue++;
   }
   return arr;
 }
 
 // main(argv.f, argv.define);
-module.exports = main;
+module.exports = parser;

@@ -1,0 +1,9 @@
+{
+  "name": "@quickgl/constants",
+  "version": "1.0.0",
+  "description": "lvgl constants",
+  "author": "Jimmie Lee",
+  "files": ["*.js", "*.ts"],
+  "main": "index.js",
+  "license": "MIT"
+}
