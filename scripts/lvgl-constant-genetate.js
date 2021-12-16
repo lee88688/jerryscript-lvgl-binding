@@ -12,10 +12,10 @@ async function generateJS(fileName, enumName) {
   }
   jsFileName = camelCase(jsFileName);
 
-  const jsConent = `const ${jsFileName} = {\n${nameValueArr.map(([n, v, c]) => `  ${n}: ${v},${c ? ` ${c}` : ''}`).join('\n')}\n};\nexport default ${jsFileName};`;
+  const jsConent = `const ${jsFileName} = {\n${nameValueArr.map(([n, v, c]) => `  ${n}: ${v},${c ? ` ${c}` : ''}`).join('\n')}\n};\nmodule.exports = ${jsFileName};`;
   await fs.promises.writeFile(path.join('./constants', `${jsFileName}.js`), jsConent);
 
-  const tsContent = `declare const ${jsFileName}: Record<string, number>;\nexport default ${jsFileName};`;
+  const tsContent = `const ${jsFileName}: Record<string, number> = {\n${nameValueArr.map(([n, v, c]) => `  ${n}: ${v},${c ? ` ${c}` : ''}`).join('\n')}\n};\nexport = ${jsFileName};`;
   await fs.promises.writeFile(path.join('./constants', `${jsFileName}.d.ts`), tsContent);
 
   return jsFileName;
@@ -31,11 +31,21 @@ async function main() {
     generateJS('lv_obj.h', 'lv_obj_flag_t'),
     // lv_event
     generateJS('lv_event.h', 'lv_event_code_t'),
+    // lv_flex
+    generateJS('lv_flex.h', 'lv_flex_align_t'),
+    generateJS('lv_flex.h', 'lv_flex_flow_t'),
   ]);
 
-  const indexJsContent = names.map(n => `export { default as ${n} } from './${n}'`).join('\n');
-  await fs.promises.writeFile('./constants/index.js', indexJsContent);
-  await fs.promises.writeFile('./constants/index.d.ts', indexJsContent);
+  const indexJsRequireContent = names.map(n => `const ${n} = require('./${n}');`).join('\n');
+  await fs.promises.writeFile(
+    './constants/index.js',
+    `${indexJsRequireContent}\nmodule.exports = {${names.join(', ')}};`
+  );
+  const indexTsRequireContent = names.map(n => `import * as ${n} from './${n}';`).join('\n');
+  await fs.promises.writeFile(
+    './constants/index.d.ts',
+    `${indexTsRequireContent}\nexport {${names.join(', ')}};`
+  );
 }
 
 main();

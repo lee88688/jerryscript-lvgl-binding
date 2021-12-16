@@ -4,6 +4,7 @@
   "description": "lvgl constants",
   "author": "Jimmie Lee",
   "files": ["*.js", "*.ts"],
+  "type": "commonjs",
   "main": "index.js",
   "license": "MIT"
 }

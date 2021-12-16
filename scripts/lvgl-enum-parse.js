@@ -50,7 +50,8 @@ async function parser(file, define) {
   const statements = m[1];
   const matches = statements.matchAll(/^\s*(?!\/\*|\/\/)(\w+)\s*=?(.*?)$/gm);
   let lastValue = 0;
-  const arr = [];
+  const arr = []; // store already parsed enum names
+  const map = {}; // store already parsed enum names for quick search
   for (const [_, name, value] of matches) {
     let finalValue = value;
     let commentStr = '';
@@ -67,7 +68,14 @@ async function parser(file, define) {
     if (mDefine) {
       for (let i = 0; i < mDefine.length; i++) {
         const m = content.match(new RegExp(`#define\\s*${mDefine[i]}\\s*(\\(.*?\\))`));
-        if (!m) console.log(mDefine[i]);
+        const preDefine = mDefine[i].trim();
+        if (!m && map[preDefine]) {
+          // if name is the previous enum
+          finalValue = finalValue.replace(preDefine, map[preDefine][1]);
+          continue;
+        } else if (!m) {
+          throw new Error(`${mDefine[i]} can't be resolve at enum(${name})`);
+        }
         finalValue = finalValue.replace(mDefine[i], m[1]);
       }
       hasDefine = true
@@ -78,6 +86,7 @@ async function parser(file, define) {
       lastValue = parsed;
     }
     arr.push([name, lastValue, commentStr]);
+    map[name] = [name, lastValue, commentStr];
     lastValue++;
   }
   return arr;
