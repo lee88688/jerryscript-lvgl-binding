@@ -7,6 +7,25 @@
 #include "jerryscript-ext/handler.h"
 #include "lvgl-common.h"
 
+#define STYLE_ITEM_LAYOUT_FLEX "s(LV_LAYOUT_FLEX)"
+
+#define STYLE_ITEM_FLEX_FLOW "s(FLEX_FLOW)"
+#define STYLE_ITEM_FLEX_MAIN_PLACE "s(FLEX_MAIN_PLACE)"
+#define STYLE_ITEM_FLEX_CROSS_PLACE "s(FLEX_CROSS_PLACE)"
+#define STYLE_ITEM_FLEX_TRACK_PLACE "s(FLEX_TRACK_PLACE)"
+
+typedef struct _lvgl_style_value_map {
+    char *name;
+    void *value;
+} lvgl_style_value_map_t;
+
+
+const lvgl_style_value_map_t LVGL_STYLE_PROP_MAP[] = {
+    { .name=STYLE_ITEM_FLEX_FLOW, .value=&LV_STYLE_FLEX_FLOW },
+    { .name=STYLE_ITEM_FLEX_MAIN_PLACE, .value=&LV_STYLE_FLEX_MAIN_PLACE },
+    { .name=STYLE_ITEM_FLEX_CROSS_PLACE, .value=&LV_STYLE_FLEX_CROSS_PLACE },
+    { .name=STYLE_ITEM_FLEX_TRACK_PLACE, .value=&LV_STYLE_FLEX_TRACK_PLACE },
+};
 
 static void lvgl_style_free_cb (void *native_p, jerry_object_native_info_t *info_p) {
     BI_LOG_TRACE("free style");
@@ -41,7 +60,28 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
             jerry_value_t name = jerryx_get_property_str(attr, "name");
             jerry_value_t value = jerryx_get_property_str(attr, "value");
 
-            lv_style_prop_t prop_name = jerry_value_as_uint32(name);
+            lv_style_prop_t prop_name;
+            if (jerry_value_is_string(name)) {
+                char *s_name = jerry_to_c_string(name);
+                uint32_t i = 0;
+                bool found = false;
+                for (i = 0; i < countof(LVGL_STYLE_PROP_MAP); i++) {
+                    if (strcmp(LVGL_STYLE_PROP_MAP[i].name, s_name)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    lv_style_prop_t *prop = (lv_style_prop_t *) LVGL_STYLE_PROP_MAP[i].value;
+                    prop_name = *prop;
+                } else {
+                    BI_LOG_ERROR("style item prop(%s) is not found in lvgl prop", s_name);
+                    prop_name = LV_STYLE_PROP_INV; // give a default value. this should not be happen.
+                }
+                jerry_free_c_string(s_name);
+            } else {
+                prop_name = jerry_value_as_uint32(name);
+            }
             style_props[i].prop = prop_name;
             switch (prop_name) {
                 // color
@@ -53,6 +93,12 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
                     // lv_color_t color = LV_COLOR_MAKE(((v >> 16) & 0xff), ((v >> 8) & 0xff), (v & 0xff));
                     // style_value.color = color;
                     style_props[i].value = style_value;
+                    break;
+                }
+
+                // currently only support flex layout
+                case LV_STYLE_LAYOUT: {
+                    style_props[i].value.num = LV_LAYOUT_FLEX;
                     break;
                 }
                 
@@ -110,6 +156,8 @@ void js_lvgl_style_init() {
 
     jerry_value_t func = jerry_create_external_function(create_lvgl_style);
     jerryx_set_property_str(global, "createLvglStyles", func);
+
+    BI_LOG_TRACE("found flex", LV_STYLE_FLEX_FLOW);
 
     jerry_release_value(global);
 }
