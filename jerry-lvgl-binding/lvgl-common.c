@@ -102,7 +102,8 @@ void js_lvgl_detach_children(lv_obj_t *parent) {
 
     while (len) {
         lv_obj_t *child = lv_obj_get_child(parent, len - 1);
-        lv_obj_set_parent(child, js_lvgl_get_detach_screen()); // todo: change to detach screen
+        lv_obj_set_parent(child, js_lvgl_get_detach_screen());
+        len--;
     }
 }
 
@@ -151,8 +152,8 @@ jerry_value_t js_array_push(jerry_value_t arr, jerry_value_t val) {
 }
 
 // inspect tool
-void get_screen_obj_info() {
-    lv_obj_t *screen = js_lvgl_get_detach_screen();
+char *get_screen_obj_info() {
+    lv_obj_t *screen = lv_scr_act();
     jerry_value_t root = jerry_create_object();
 
     jerry_value_t id = jerry_create_number((uint32_t) screen);
@@ -259,10 +260,11 @@ void get_screen_obj_info() {
 
     jerry_value_t json = jerry_json_stringify(root);
     char *str = jerry_to_c_string(json);
-    printf("%s\n", str);
     jerry_free_c_string(str);
     jerry_release_value(json);
 
     jerry_release_value(queue);
     jerry_release_value(root);
+
+    return str;
 }

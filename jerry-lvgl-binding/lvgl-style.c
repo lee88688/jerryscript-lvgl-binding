@@ -66,7 +66,7 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
                 uint32_t i = 0;
                 bool found = false;
                 for (i = 0; i < countof(LVGL_STYLE_PROP_MAP); i++) {
-                    if (strcmp(LVGL_STYLE_PROP_MAP[i].name, s_name)) {
+                    if (strcmp(LVGL_STYLE_PROP_MAP[i].name, s_name) == 0) {
                         found = true;
                         break;
                     }

@@ -110,6 +110,6 @@ void print_obj_style_info(lv_obj_t *obj, int32_t expand_index);
 jerry_value_t js_array_push(jerry_value_t arr, jerry_value_t val);
 jerry_value_t js_array_shift(jerry_value_t arr);
 
-void get_screen_obj_info();
+char *get_screen_obj_info();
 
 #endif /* LVGL_COMMON_H */
