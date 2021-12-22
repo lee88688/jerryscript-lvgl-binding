@@ -47,13 +47,16 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
 
     lv_style_t *style = (lv_style_t *) malloc(sizeof(lv_style_t));
     lv_style_init(style);
-    style->is_const = 1; // prevent lvgl modifying
+    // style->is_const = 1; // prevent lvgl modifying
     style->has_group = 0xff; // LV_STYLE_CONST_INIT
     jerry_value_t attributes = jerryx_get_property_str(obj_prop_value, "attributes");
     uint8_t prop_cnt = jerry_get_array_length(attributes);
     if (prop_cnt > 1) {
         style->prop_cnt = prop_cnt;
-        lv_style_const_prop_t *style_props = malloc(sizeof(lv_style_const_prop_t) * prop_cnt);
+        // lv_style_const_prop_t *style_props = malloc(sizeof(lv_style_const_prop_t) * prop_cnt);
+        uint8_t *values_and_props = (uint8_t *) malloc(style->prop_cnt * (sizeof(lv_style_value_t) + sizeof(uint16_t)));
+        uint16_t *props = (uint16_t *) (values_and_props + style->prop_cnt * sizeof(lv_style_value_t));
+        lv_style_value_t *values = (lv_style_value_t *) values_and_props;
         uint8_t i = 0;
         for (i = 0; i < prop_cnt; i++) {
             jerry_value_t attr = jerry_get_property_by_index(attributes, i);
@@ -82,29 +85,41 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
             } else {
                 prop_name = jerry_value_as_uint32(name);
             }
-            style_props[i].prop = prop_name;
+            props[i] = prop_name;
+            // style_props[i].prop = prop_name;
             switch (prop_name) {
                 // color
+                case LV_STYLE_BORDER_COLOR:
+                case LV_STYLE_LINE_COLOR:
                 case LV_STYLE_TEXT_COLOR:
+                case LV_STYLE_OUTLINE_COLOR:
+                case LV_STYLE_SHADOW_COLOR:
+                case LV_STYLE_ARC_COLOR:
+                case LV_STYLE_BG_GRAD_COLOR:
+                case LV_STYLE_BG_IMG_RECOLOR:
+                case LV_STYLE_IMG_RECOLOR:
                 case LV_STYLE_BG_COLOR: {
                     uint32_t v = jerry_value_as_uint32(value);
                     lv_style_value_t style_value = { .color = LV_COLOR_MAKE((v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff) };
                     // lv_style_value_t style_value;
                     // lv_color_t color = LV_COLOR_MAKE(((v >> 16) & 0xff), ((v >> 8) & 0xff), (v & 0xff));
                     // style_value.color = color;
-                    style_props[i].value = style_value;
+                    values[i] = style_value;
+                    // style_props[i].value = style_value;
                     break;
                 }
 
                 // currently only support flex layout
                 case LV_STYLE_LAYOUT: {
-                    style_props[i].value.num = LV_LAYOUT_FLEX;
+                    values[i].num = LV_LAYOUT_FLEX;
+                    // style_props[i].value.num = LV_LAYOUT_FLEX;
                     break;
                 }
                 
                 // default for most of props
                 default:
-                    style_props[i].value.num = jerry_value_as_uint32(value);
+                    values[i].num = jerry_value_as_uint32(value);
+                    // style_props[i].value.num = jerry_value_as_uint32(value);
                     break;
             }
 
@@ -112,7 +127,8 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
             jerry_release_value(name);
             jerry_release_value(attr);
         }
-        style->v_p.const_props = style_props;
+        style->v_p.values_and_props = values_and_props;
+        // style->v_p.const_props = style_props;
     } else if (prop_cnt == 1) {
         style->prop_cnt = prop_cnt;
         jerry_value_t attr = jerry_get_property_by_index(attributes, 0);
@@ -156,8 +172,6 @@ void js_lvgl_style_init() {
 
     jerry_value_t func = jerry_create_external_function(create_lvgl_style);
     jerryx_set_property_str(global, "createLvglStyles", func);
-
-    BI_LOG_TRACE("found flex", LV_STYLE_FLEX_FLOW);
 
     jerry_release_value(global);
 }

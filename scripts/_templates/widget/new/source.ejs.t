@@ -23,6 +23,7 @@ static const jerry_object_native_info_t lvgl_<%= h.changeCase.lower(widgetName) 
 
 static jerry_value_t lvgl_<%= h.changeCase.lower(widgetName) %>_constructor(const jerry_call_info_t *info, const jerry_value_t argv[], const jerry_length_t argc) {
     lv_obj_t *obj = lv_<%= h.changeCase.lower(widgetName) %>_create(js_lvgl_get_detach_screen());
+    lv_obj_set_user_data(obj, (void *) info->this_value);
     jerry_set_object_native_pointer(
         info->this_value,
         obj,

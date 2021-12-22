@@ -12,6 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@quickgl/constants": "^1.0.0",
+    "clipboardy": "2.3",
     "hygen": "^6.1.0",
     "lodash": "^4.17.21",
     "rimraf": "^3.0.2",
