@@ -47,103 +47,104 @@ static bool create_lvgl_style_foreach(const jerry_value_t obj_prop_name, const j
 
     lv_style_t *style = (lv_style_t *) malloc(sizeof(lv_style_t));
     lv_style_init(style);
-    // style->is_const = 1; // prevent lvgl modifying
+    style->is_const = 1; // prevent lvgl modifying
     style->has_group = 0xff; // LV_STYLE_CONST_INIT
     jerry_value_t attributes = jerryx_get_property_str(obj_prop_value, "attributes");
     uint8_t prop_cnt = jerry_get_array_length(attributes);
-    if (prop_cnt > 1) {
-        style->prop_cnt = prop_cnt;
-        // lv_style_const_prop_t *style_props = malloc(sizeof(lv_style_const_prop_t) * prop_cnt);
-        uint8_t *values_and_props = (uint8_t *) malloc(style->prop_cnt * (sizeof(lv_style_value_t) + sizeof(uint16_t)));
-        uint16_t *props = (uint16_t *) (values_and_props + style->prop_cnt * sizeof(lv_style_value_t));
-        lv_style_value_t *values = (lv_style_value_t *) values_and_props;
-        uint8_t i = 0;
-        for (i = 0; i < prop_cnt; i++) {
-            jerry_value_t attr = jerry_get_property_by_index(attributes, i);
-            jerry_value_t name = jerryx_get_property_str(attr, "name");
-            jerry_value_t value = jerryx_get_property_str(attr, "value");
+    style->prop_cnt = prop_cnt;
+    // const styles don't use style_cnt, use last prop value `LV_STYLE_PROP_INV` to indicate it.
+    lv_style_const_prop_t *style_props = malloc(sizeof(lv_style_const_prop_t) * (prop_cnt + 1));
 
-            lv_style_prop_t prop_name;
-            if (jerry_value_is_string(name)) {
-                char *s_name = jerry_to_c_string(name);
-                uint32_t i = 0;
-                bool found = false;
-                for (i = 0; i < countof(LVGL_STYLE_PROP_MAP); i++) {
-                    if (strcmp(LVGL_STYLE_PROP_MAP[i].name, s_name) == 0) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) {
-                    lv_style_prop_t *prop = (lv_style_prop_t *) LVGL_STYLE_PROP_MAP[i].value;
-                    prop_name = *prop;
-                } else {
-                    BI_LOG_ERROR("style item prop(%s) is not found in lvgl prop", s_name);
-                    prop_name = LV_STYLE_PROP_INV; // give a default value. this should not be happen.
-                }
-                jerry_free_c_string(s_name);
-            } else {
-                prop_name = jerry_value_as_uint32(name);
-            }
-            props[i] = prop_name;
-            // style_props[i].prop = prop_name;
-            switch (prop_name) {
-                // color
-                case LV_STYLE_BORDER_COLOR:
-                case LV_STYLE_LINE_COLOR:
-                case LV_STYLE_TEXT_COLOR:
-                case LV_STYLE_OUTLINE_COLOR:
-                case LV_STYLE_SHADOW_COLOR:
-                case LV_STYLE_ARC_COLOR:
-                case LV_STYLE_BG_GRAD_COLOR:
-                case LV_STYLE_BG_IMG_RECOLOR:
-                case LV_STYLE_IMG_RECOLOR:
-                case LV_STYLE_BG_COLOR: {
-                    uint32_t v = jerry_value_as_uint32(value);
-                    lv_style_value_t style_value = { .color = LV_COLOR_MAKE((v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff) };
-                    // lv_style_value_t style_value;
-                    // lv_color_t color = LV_COLOR_MAKE(((v >> 16) & 0xff), ((v >> 8) & 0xff), (v & 0xff));
-                    // style_value.color = color;
-                    values[i] = style_value;
-                    // style_props[i].value = style_value;
-                    break;
-                }
-
-                // currently only support flex layout
-                case LV_STYLE_LAYOUT: {
-                    values[i].num = LV_LAYOUT_FLEX;
-                    // style_props[i].value.num = LV_LAYOUT_FLEX;
-                    break;
-                }
-                
-                // default for most of props
-                default:
-                    values[i].num = jerry_value_as_uint32(value);
-                    // style_props[i].value.num = jerry_value_as_uint32(value);
-                    break;
-            }
-
-            jerry_release_value(value);
-            jerry_release_value(name);
-            jerry_release_value(attr);
-        }
-        style->v_p.values_and_props = values_and_props;
-        // style->v_p.const_props = style_props;
-    } else if (prop_cnt == 1) {
-        style->prop_cnt = prop_cnt;
-        jerry_value_t attr = jerry_get_property_by_index(attributes, 0);
+    // uint8_t *values_and_props = (uint8_t *) malloc(style->prop_cnt * (sizeof(lv_style_value_t) + sizeof(uint16_t)));
+    // uint16_t *props = (uint16_t *) (values_and_props + style->prop_cnt * sizeof(lv_style_value_t));
+    // lv_style_value_t *values = (lv_style_value_t *) values_and_props;
+    uint8_t i = 0;
+    for (i = 0; i < prop_cnt; i++) {
+        jerry_value_t attr = jerry_get_property_by_index(attributes, i);
         jerry_value_t name = jerryx_get_property_str(attr, "name");
         jerry_value_t value = jerryx_get_property_str(attr, "value");
 
-        // todo: set prop value need int32
-        style->prop1 = jerry_value_as_uint32(name);
-        style->v_p.value1.num = jerry_value_as_int32(value);
-        // lv_style_set_prop(style, jerry_value_as_uint32(name), (lv_style_value_t) {.num = jerry_value_as_int32(value)});
+        lv_style_prop_t prop_name;
+        if (jerry_value_is_string(name)) {
+            char *s_name = jerry_to_c_string(name);
+            uint32_t i = 0;
+            bool found = false;
+            for (i = 0; i < countof(LVGL_STYLE_PROP_MAP); i++) {
+                if (strcmp(LVGL_STYLE_PROP_MAP[i].name, s_name) == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                lv_style_prop_t *prop = (lv_style_prop_t *) LVGL_STYLE_PROP_MAP[i].value;
+                prop_name = *prop;
+            } else {
+                BI_LOG_ERROR("style item prop(%s) is not found in lvgl prop", s_name);
+                prop_name = LV_STYLE_PROP_INV; // give a default value. this should not be happen.
+            }
+            jerry_free_c_string(s_name);
+        } else {
+            prop_name = jerry_value_as_uint32(name);
+        }
+        // props[i] = prop_name;
+        style_props[i].prop = prop_name;
+        switch (prop_name) {
+            // color
+            case LV_STYLE_BORDER_COLOR:
+            case LV_STYLE_LINE_COLOR:
+            case LV_STYLE_TEXT_COLOR:
+            case LV_STYLE_OUTLINE_COLOR:
+            case LV_STYLE_SHADOW_COLOR:
+            case LV_STYLE_ARC_COLOR:
+            case LV_STYLE_BG_GRAD_COLOR:
+            case LV_STYLE_BG_IMG_RECOLOR:
+            case LV_STYLE_IMG_RECOLOR:
+            case LV_STYLE_BG_COLOR: {
+                uint32_t v = jerry_value_as_uint32(value);
+                lv_style_value_t style_value = { .color = LV_COLOR_MAKE((v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff) };
 
-        jerry_release_value(attr);
-        jerry_release_value(name);
+                // values[i] = style_value;
+                style_props[i].value = style_value;
+                break;
+            }
+
+            // currently only support flex layout
+            case LV_STYLE_LAYOUT: {
+                // values[i].num = LV_LAYOUT_FLEX;
+                style_props[i].value.num = LV_LAYOUT_FLEX;
+                break;
+            }
+            
+            // default for most of props
+            default:
+                // values[i].num = jerry_value_as_uint32(value);
+                style_props[i].value.num = jerry_value_as_uint32(value);
+                break;
+        }
+
         jerry_release_value(value);
+        jerry_release_value(name);
+        jerry_release_value(attr);
     }
+    // style->v_p.values_and_props = values_and_props;
+    style_props[i].prop = LV_STYLE_PROP_INV;
+    style->v_p.const_props = style_props;
+
+    // else if (prop_cnt == 1) {
+    //     style->prop_cnt = prop_cnt;
+    //     jerry_value_t attr = jerry_get_property_by_index(attributes, 0);
+    //     jerry_value_t name = jerryx_get_property_str(attr, "name");
+    //     jerry_value_t value = jerryx_get_property_str(attr, "value");
+
+    //     // todo: set prop value need int32
+    //     style->prop1 = jerry_value_as_uint32(name);
+    //     style->v_p.value1.num = jerry_value_as_int32(value);
+    //     // lv_style_set_prop(style, jerry_value_as_uint32(name), (lv_style_value_t) {.num = jerry_value_as_int32(value)});
+
+    //     jerry_release_value(attr);
+    //     jerry_release_value(name);
+    //     jerry_release_value(value);
+    // }
 
     jerry_set_object_native_pointer(
         obj_prop_value,
