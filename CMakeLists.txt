@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.21)
 project (lvgl)
 
 # lvgl
@@ -33,11 +33,16 @@ target_include_directories(quickjs_lvgl_binding PUBLIC
 endif()
 
 # jerryscript build
-# set(JERRY_DEBUGGER ON)
-# set(JERRY_LINE_INFO ON)
-# set(JERRY_CPOINTER_32_BIT ON)
-# set(JERRY_SYSTEM_ALLOCATOR ON)
-# add_subdirectory(jerryscript)
+set(JERRY_DEBUGGER ON CACHE BOOL "debugger on")
+set(JERRY_LINE_INFO ON CACHE BOOL "line info on")
+set(JERRY_CPOINTER_32_BIT ON CACHE BOOL "32 bit pointer")
+set(JERRY_GLOBAL_HEAP_SIZE 102400 CACHE STRING "heap size")
+set(JERRY_SYSTEM_ALLOCATOR ON CACHE BOOL "system allocator")
+set(JERRY_ERROR_MESSAGES ON CACHE BOOL "error messages")
+set(JERRY_MEM_STATS ON CACHE BOOL "memory stats")
+set(JERRY_LOGGING ON CACHE BOOL "logging")
+
+add_subdirectory(jerryscript)
 
 # jerry lvgl binding
 file(GLOB JE_SOURCES jerry-lvgl-binding/*.c)
@@ -48,6 +53,7 @@ target_include_directories(jerry_lvgl_biding PUBLIC
     "${PROJECT_SOURCE_DIR}/jerryscript/jerry-ext/include"
 )
 
+if (0)
 # jerry lib
 add_library(jerry_core STATIC IMPORTED)
 # find_library(jerry_lib NAMES jerry-core PATHS "${PROJECT_SOURCE_DIR}/jerry")
@@ -59,6 +65,7 @@ add_library(jerry_ext STATIC IMPORTED)
 set_target_properties(jerry_ext PROPERTIES
   IMPORTED_LOCATION "${PROJECT_SOURCE_DIR}/jerryscript/build/lib/libjerry-ext.a"
 )
+endif()
 
 file(GLOB_RECURSE TESTS tests/*.c)
 add_library(tests STATIC ${TESTS})
@@ -102,7 +109,9 @@ target_include_directories(index PUBLIC
 target_link_libraries(index PUBLIC 
     lvgl lv_drivers lv_examples 
     # quickjs quickjs_lvgl_binding 
-    jerry_lvgl_biding jerry_core jerry_ext
+    jerry_lvgl_biding
+    "jerry-core" "jerry-ext"
+    # jerryscript
     tests
 )
 
